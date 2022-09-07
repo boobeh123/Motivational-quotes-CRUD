@@ -3,6 +3,8 @@
 ## Description
 A full stack web application that stores a quote & author. Storing an empty name & quote can be updated with predefined quotes. The predefined quotes can be deleted.
 
+The project is deployed here: https://secure-cove-71446.herokuapp.com/
+
 ## Demo
 ![demo](cruddemo.gif)
 
