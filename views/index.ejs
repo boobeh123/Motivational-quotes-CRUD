@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD App</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1 data-position="header">Motivational Quotes</h1>
+    <!-- Two text inputs & submit button -->
+    <section data-position="add-quote">
+        <h2>Add a quote</h2>
+        <form action="/quotes" method="POST">
+            <input type="text" placeholder="name" name="name">
+            <input type="text" placeholder="quote" name="quote"><!--
+        --><button type="submit">Submit</button>
+        </form>
+    </section>
+    <!-- Displays quotes -->
+    <section data-position="quotes">
+    <h2>Quotes</h2>
+        <ul class="quotes">
+            <% for(let i = 0; i < quotes.length; i++) {%>
+                <li class="quote">
+                    <span><%= quotes[i].name %></span>
+                    <span><%= quotes[i].quote %></span>:
+                </li>
+            <% } %>
+        </ul>
+    </section>
+    <!-- Update button -->
+    <section data-position="update-quote">
+        <div>
+            <h2>Uhhh does this work?</h2>
+            <p>Replaces blank quotes with a quote from Michael Scott</p>
+            <button id="update-button">Update</button>
+        </div>
+    </section>
+    <!-- Delete button -->
+    <section data-position="delete-quote">
+        <div>
+            <h2>Earn your tomorrow</h2>
+            <p>Deletes one quote from Michael Scott.</p>
+            <button id="delete-button">Delete</button>
+        </div>
+    </section>
+    <div id="message"></div>
+    <script src="/main.js"></script>
+</body>
+</html>
