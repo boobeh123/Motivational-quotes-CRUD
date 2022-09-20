@@ -4,17 +4,28 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD App</title>
+    <title>Motivational Quotes</title>
+    <!-- Fontawesome -->
+    <script src="https://kit.fontawesome.com/9f91d488b5.js" crossorigin="anonymous"></script>
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
+    <!-- External CSS -->
     <link rel="stylesheet" href="/style.css">
+    
 </head>
 <body>
     <h1 data-position="header">Motivational Quotes</h1>
     <!-- Two text inputs & submit button -->
     <section data-position="add-quote">
         <h2>Add a quote</h2>
-        <form action="/quotes" method="POST">
-            <input type="text" placeholder="name" name="name">
-            <input type="text" placeholder="quote" name="quote"><!--
+        <p>Fill out the fields and click submit to share a memorable quote.</p>
+        <p>You may upvote quotes by clicking the thumbs-up on the left.</p>
+        <p>You may delete quotes by clicking the bin on the right.
+        <form action="/addQuotes" method="POST">
+            <input type="text" placeholder="First & Last Name" name="name">
+            <input type="text" placeholder="A quote from this person" name="quote"><!--
         --><button type="submit">Submit</button>
         </form>
     </section>
@@ -24,27 +35,16 @@
         <ul class="quotes">
             <% for(let i = 0; i < quotes.length; i++) {%>
                 <li class="quote">
+                    <span><%= quotes[i].likes %></span>
+                    <span class='fa fa-thumbs-up'></span>
+                    <span>-</span>
                     <span><%= quotes[i].name %></span>
-                    <span><%= quotes[i].quote %></span>:
+                    <span>-</span>
+                    <span><%= quotes[i].quote %></span>
+                    <span class='fa fa-trash'></span>
                 </li>
             <% } %>
         </ul>
-    </section>
-    <!-- Update button -->
-    <section data-position="update-quote">
-        <div>
-            <h2>Uhhh does this work?</h2>
-            <p>Replaces blank quotes with a quote from Michael Scott</p>
-            <button id="update-button">Update</button>
-        </div>
-    </section>
-    <!-- Delete button -->
-    <section data-position="delete-quote">
-        <div>
-            <h2>Earn your tomorrow</h2>
-            <p>Deletes one quote from Michael Scott.</p>
-            <button id="delete-button">Delete</button>
-        </div>
     </section>
     <div id="message"></div>
     <script src="/main.js"></script>
