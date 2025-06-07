@@ -9,6 +9,10 @@ const helmet = require('helmet');
 const cors = require('cors');
 const PORT = process.env.PORT;
 
+// Debug environment variables
+console.log('DB_STRING exists:', !!process.env.DB_STRING);
+console.log('DB_STRING starts with:', process.env.DB_STRING?.substring(0, 20) + '...');
+
 // Security middleware with custom CSP
 app.use(helmet({
     contentSecurityPolicy: {
@@ -86,15 +90,28 @@ const validateQuoteInput = (req, res, next) => {
 };
 
 // Connect to MongoDB
-MongoClient.connect(process.env.DB_STRING)
-.then(client => {
-    console.log(`Connected to ${DB_NAME} Database`);
-    db = client.db(DB_NAME);
-})
-.catch(error => {
-    console.error('Failed to connect to MongoDB:', error);
-    process.exit(1);
-});
+const connectToMongo = async () => {
+    try {
+        if (!process.env.DB_STRING) {
+            throw new Error('MongoDB connection string is missing');
+        }
+
+        // Ensure the connection string starts with the correct protocol
+        const connectionString = process.env.DB_STRING.trim();
+        if (!connectionString.startsWith('mongodb://') && !connectionString.startsWith('mongodb+srv://')) {
+            throw new Error('Invalid MongoDB connection string format');
+        }
+
+        const client = await MongoClient.connect(connectionString);
+        console.log(`Connected to ${DB_NAME} Database`);
+        db = client.db(DB_NAME);
+    } catch (error) {
+        console.error('Failed to connect to MongoDB:', error);
+        process.exit(1);
+    }
+};
+
+connectToMongo();
 
 // Middleware
 app.set('view engine', 'ejs');
