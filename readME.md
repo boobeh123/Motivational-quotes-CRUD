@@ -3,20 +3,11 @@
 ## Description
 A full stack web application that receives inputs from the user and sends the inputs to a server. The database stores the inputs & serves the data to be displayed onto the web page. This data is not stored locally and can be viewed / interacted by anyone using any device or browser.
 
-The project is deployed here: 
-
-If you would like to clone this project start by:
-* Installing dependencies
-* Creating a `.env` file named `.env`
-    * DB_STRING='your_mongo_db_connection_string'
-    * PORT=3000
-* Change values to these variables `DB_NAME` & `COLL_NAME` within `server.js`
-* Delete any [templating](https://ejs.co/#docs) within `index.ejs`
-* Reading server.js-> creating .env-> read index->ejs-> read main.js -> style.css
-* If deploying: change MongoDB User Permissions & environment variables
+The project is deployed here: https://wisdomwell.up.railway.app/
 
 ## Demo
 ![demo](cruddemo.gif)
+
 ## Features
 * Full-stack web application deployed with Railway
 * Responsive to mobile viewports
@@ -39,3 +30,12 @@ If you would like to clone this project start by:
 
 ## Do you want to build this project?
 https://zellwk.com/blog/crud-express-mongodb/
+
+* Installing dependencies
+* Creating a `.env` file named `.env`
+    * DB_STRING='your_mongo_db_connection_string'
+    * PORT=3000
+* Change values to these variables `DB_NAME` & `COLL_NAME` within `server.js`
+* Delete any [templating](https://ejs.co/#docs) within `index.ejs`
+* Reading server.js-> creating .env-> read index->ejs-> read main.js -> style.css
+* If deploying: change MongoDB User Permissions & environment variables
