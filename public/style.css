@@ -335,7 +335,7 @@ button:active {
     position: relative;
     background: white;
     width: 90%;
-    max-width: 600px;
+    max-width: 700px;
     margin: 2rem auto;
     padding: 2.5rem;
     border-radius: 15px;
@@ -355,7 +355,7 @@ button:active {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    border-radius: 10%;
 }
 
 .close:hover {
