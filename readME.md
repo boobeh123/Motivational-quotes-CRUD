@@ -5,7 +5,7 @@ A full stack web application that receives inputs from the user and sends the in
 
 The project is deployed here: https://wisdomwell.up.railway.app/
 
-## Demo
+## Demo 2023
 ![demo](cruddemo.gif)
 
 ## Features
@@ -37,5 +37,5 @@ https://zellwk.com/blog/crud-express-mongodb/
     * PORT=3000
 * Change values to these variables `DB_NAME` & `COLL_NAME` within `server.js`
 * Delete any [templating](https://ejs.co/#docs) within `index.ejs`
-* Reading server.js-> creating .env-> read index->ejs-> read main.js -> style.css
+* Reading server.js-> creating .env-> read index.ejs-> read main.js -> style.css
 * If deploying: change MongoDB User Permissions & environment variables
