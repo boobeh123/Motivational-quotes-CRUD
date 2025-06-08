@@ -4,13 +4,32 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/png" href="/favicon.png">
-    <title>Privacy Policy - WisdomWell</title>
     <meta name="title" content="Privacy Policy - WisdomWell">
     <meta name="description" content="Learn how WisdomWell handles and protects your data. Our privacy policy explains what information we collect, how we use it, and your rights regarding your data.">
     <meta name="keywords" content="privacy policy, data protection, user privacy, data security, WisdomWell privacy, quote platform privacy">
     <meta name="author" content="Bobby Asakawa">
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="Privacy Policy - WisdomWell" />
+    <meta property="og:description" content="Learn how WisdomWell handles and protects your data. Our privacy policy explains what information we collect, how we use it, and your rights regarding your data." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wisdomwell.up.railway.app/privacy" />
+    <meta property="og:image" content="https://wisdomwell.up.railway.app/favicon.png" />
+    <meta property="og:site_name" content="WisdomWell" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:creator" content="@boobeh123" />
+    <meta name="twitter:title" content="Privacy Policy - WisdomWell" />
+    <meta name="twitter:description" content="Learn how WisdomWell handles and protects your data. Our privacy policy explains what information we collect, how we use it, and your rights regarding your data." />
+    <meta name="twitter:image" content="https://wisdomwell.up.railway.app/favicon.png" />
+    <meta name="theme-color" content="#2c3e50" />
+    <link rel="canonical" href="https://wisdomwell.up.railway.app/privacy" />
+    <!-- Preload -->
+    <link rel="preload" href="/style.css" as="style">
+    <link rel="preload" href="/main.js" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" as="style">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <!-- Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google fonts -->
@@ -19,14 +38,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
     <!-- External CSS -->
     <link rel="stylesheet" href="/style.css">
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Privacy Policy - WisdomWell",
+        "description": "Learn how WisdomWell handles and protects your data. Our privacy policy explains what information we collect, how we use it, and your rights regarding your data.",
+        "url": "https://wisdomwell.up.railway.app/privacy",
+        "lastModified": "<%= new Date().toISOString() %>",
+        "author": {
+            "@type": "Person",
+            "name": "Bobby Asakawa",
+            "url": "https://bobby-asakawa.netlify.app/"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "WisdomWell",
+            "url": "https://wisdomwell.up.railway.app/"
+        },
+        "mainEntity": {
+            "@type": "Article",
+            "name": "WisdomWell Privacy Policy",
+            "headline": "Privacy Policy - WisdomWell",
+            "datePublished": "2024-01-01",
+            "dateModified": "<%= new Date().toISOString() %>",
+            "author": {
+                "@type": "Person",
+                "name": "Bobby Asakawa"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "WisdomWell"
+            }
+        }
+    }
+    </script>
+    <title>Privacy Policy - WisdomWell</title>
 </head>
 <body>
     <header class="main-header" role="banner">
         <div class="header-content">
-            <div class="logo-section">
+            <section class="logo-section" aria-label="Site branding">
                 <h1 class="logo">WisdomWell</h1>
                 <p class="tagline">Share and discover words that inspire</p>
-            </div>
+            </section>
             <nav class="main-nav" role="navigation" aria-label="Main navigation">
                 <ul>
                     <li><a href="/">Home</a></li>
@@ -38,102 +94,123 @@
 
     <main role="main">
         <div class="container">
-            <section class="privacy-policy" aria-labelledby="privacy-title">
-                <h2 id="privacy-title">Privacy Policy</h2>
-                <p class="last-updated">Last updated: <%= new Date().toLocaleDateString() %></p>
+            <article class="privacy-policy" aria-labelledby="privacy-title">
+                <header>
+                    <h2 id="privacy-title">Privacy Policy</h2>
+                    <p class="last-updated" aria-label="Last updated date">Last updated: <%= new Date().toLocaleDateString() %></p>
+                </header>
 
-                <div class="policy-content">
-                    <h3>1. Information We Collect</h3>
-                    <p>WisdomWell is a platform for sharing and discovering motivational quotes. We collect and store the following information:</p>
-                    <ul>
-                        <li>Quotes submitted by users</li>
-                        <li>Author names associated with quotes</li>
-                        <li>Like counts for each quote</li>
-                        <li>Timestamps for quote creation and updates</li>
-                    </ul>
+                <div class="policy-content" role="article">
+                    <section aria-labelledby="info-collect-title">
+                        <h3 id="info-collect-title">1. Information We Collect</h3>
+                        <p>WisdomWell is a platform for sharing and discovering motivational quotes. We collect and store the following information:</p>
+                        <ul role="list" aria-label="Types of information collected">
+                            <li>Quotes submitted by users</li>
+                            <li>Author names associated with quotes</li>
+                            <li>Like counts for each quote</li>
+                            <li>Timestamps for quote creation and updates</li>
+                        </ul>
+                    </section>
 
-                    <h3>2. How We Use Your Information</h3>
-                    <p>The information we collect is used solely for the purpose of:</p>
-                    <ul>
-                        <li>Displaying quotes on our platform</li>
-                        <li>Tracking quote popularity through likes</li>
-                        <li>Maintaining the chronological order of quotes</li>
-                    </ul>
+                    <section aria-labelledby="info-use-title">
+                        <h3 id="info-use-title">2. How We Use Your Information</h3>
+                        <p>The information we collect is used solely for the purpose of:</p>
+                        <ul role="list" aria-label="Information usage purposes">
+                            <li>Displaying quotes on our platform</li>
+                            <li>Tracking quote popularity through likes</li>
+                            <li>Maintaining the chronological order of quotes</li>
+                        </ul>
+                    </section>
 
-                    <h3>3. Data Storage and Security</h3>
-                    <p>We take the following measures to protect your data:</p>
-                    <ul>
-                        <li>All data is stored securely in MongoDB</li>
-                        <li>We implement rate limiting to prevent abuse</li>
-                        <li>Input validation and sanitization for all submissions</li>
-                        <li>Regular security updates and monitoring</li>
-                    </ul>
+                    <section aria-labelledby="data-security-title">
+                        <h3 id="data-security-title">3. Data Storage and Security</h3>
+                        <p>We take the following measures to protect your data:</p>
+                        <ul role="list" aria-label="Security measures">
+                            <li>All data is stored securely in MongoDB</li>
+                            <li>We implement rate limiting to prevent abuse</li>
+                            <li>Input validation and sanitization for all submissions</li>
+                            <li>Regular security updates and monitoring</li>
+                        </ul>
+                    </section>
 
-                    <h3>4. What We Don't Collect</h3>
-                    <p>We do not collect or store:</p>
-                    <ul>
-                        <li>Personal identifying information</li>
-                        <li>Email addresses</li>
-                        <li>IP addresses (except for rate limiting)</li>
-                        <li>Cookies or tracking data</li>
-                    </ul>
+                    <section aria-labelledby="no-collect-title">
+                        <h3 id="no-collect-title">4. What We Don't Collect</h3>
+                        <p>We do not collect or store:</p>
+                        <ul role="list" aria-label="Information not collected">
+                            <li>Personal identifying information</li>
+                            <li>Email addresses</li>
+                            <li>IP addresses (except for rate limiting)</li>
+                            <li>Cookies or tracking data</li>
+                        </ul>
+                    </section>
 
-                    <h3>5. Your Rights</h3>
-                    <p>You have the right to:</p>
-                    <ul>
-                        <li>Submit quotes anonymously</li>
-                        <li>Edit or delete your submitted quotes</li>
-                        <li>Like or unlike quotes</li>
-                    </ul>
+                    <section aria-labelledby="user-rights-title">
+                        <h3 id="user-rights-title">5. Your Rights</h3>
+                        <p>You have the right to:</p>
+                        <ul role="list" aria-label="User rights">
+                            <li>Submit quotes anonymously</li>
+                            <li>Edit or delete your submitted quotes</li>
+                            <li>Like or unlike quotes</li>
+                        </ul>
+                    </section>
 
-                    <h3>6. Third-Party Services</h3>
-                    <p>We use the following third-party services:</p>
-                    <ul>
-                        <li>MongoDB for data storage</li>
-                        <li>Font Awesome for icons</li>
-                        <li>Google Fonts for typography</li>
-                    </ul>
+                    <section aria-labelledby="third-party-title">
+                        <h3 id="third-party-title">6. Third-Party Services</h3>
+                        <p>We use the following third-party services:</p>
+                        <ul role="list" aria-label="Third-party services used">
+                            <li>MongoDB for data storage</li>
+                            <li>Font Awesome for icons</li>
+                            <li>Google Fonts for typography</li>
+                        </ul>
+                    </section>
 
-                    <h3>7. Changes to This Policy</h3>
-                    <p>We may update this privacy policy from time to time. Any changes will be reflected in the "Last updated" date at the top of this page.</p>
+                    <section aria-labelledby="policy-changes-title">
+                        <h3 id="policy-changes-title">7. Changes to This Policy</h3>
+                        <p>We may update this privacy policy from time to time. Any changes will be reflected in the "Last updated" date at the top of this page.</p>
+                    </section>
 
-                    <h3>8. Contact</h3>
-                    <p>If you have any questions about this privacy policy, please contact us through our <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer">GitHub repository</a>.</p>
+                    <section aria-labelledby="contact-title">
+                        <h3 id="contact-title">8. Contact</h3>
+                        <p>If you have any questions about this privacy policy, please contact us through our <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="Contact through GitHub repository">GitHub repository</a>.</p>
+                    </section>
                 </div>
-            </section>
+            </article>
         </div>
     </main>
 
     <footer class="main-footer" role="contentinfo">
         <div class="footer-content">
-            <div class="footer-section">
-                <h3>WisdomWell</h3>
+            <section class="footer-section" aria-labelledby="footer-branding">
+                <h3 id="footer-branding">WisdomWell</h3>
                 <p>Share and discover words that inspire</p>
-            </div>
-            <div class="footer-section">
-                <h4>Links</h4>
-                <ul>
-                    <li><a href="/privacy">Privacy Policy</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>Connect</h4>
-                <div class="social-links">
-                    <a href="https://x.com/boobeh123" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                        <i class="fab fa-twitter" aria-hidden="true"></i>
+            </section>
+            <section class="footer-section" aria-labelledby="footer-links">
+                <h4 id="footer-links">Links</h4>
+                <nav aria-label="Footer navigation">
+                    <ul>
+                        <li><a href="/privacy">Privacy Policy</a></li>
+                    </ul>
+                </nav>
+            </section>
+            <section class="footer-section" aria-labelledby="footer-connect">
+                <h4 id="footer-connect">Connect</h4>
+                <nav class="social-links" aria-label="Social media links">
+                    <a href="https://x.com/boobeh123" target="_blank" rel="noopener noreferrer" aria-label="Follow us on X (formerly Twitter)">
+                        <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
                     </a>
-                    <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                    <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub repository">
                         <i class="fab fa-github" aria-hidden="true"></i>
                     </a>
-                    <a href="https://bobby-asakawa.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Portfolio">
+                    <a href="https://bobby-asakawa.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Visit developer's portfolio">
                         <i class="fa-solid fa-globe" aria-hidden="true"></i>
                     </a>
-                </div>
-            </div>
+                </nav>
+            </section>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 WisdomWell. All rights reserved.</p>
+            <p><span class="copyright"> </span>. All rights reserved.</p>
         </div>
     </footer>
+    <script src="/main.js"></script>
 </body>
 </html> 

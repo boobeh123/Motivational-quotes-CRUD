@@ -4,14 +4,30 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="WisdomWell - Share & Discover Inspirational Quotes">
+    <meta name="description" content="Join WisdomWell to share and discover motivational quotes. A community-driven platform for inspiration, wisdom, and positive thinking. Add your favorite quotes, like others, and spread positivity.">
+    <meta name="keywords" content="motivational quotes, inspirational quotes, wisdom, motivation, positive thinking, life quotes, daily inspiration, quote sharing, community quotes">
+    <meta name="author" content="Bobby Asakawa">
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="WisdomWell - Share & Discover Inspirational Quotes" />
+    <meta property="og:description" content="Join WisdomWell to share and discover motivational quotes. A community-driven platform for inspiration, wisdom, and positive thinking." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wisdomwell.up.railway.app/" />
+    <meta property="og:image" content="https://wisdomwell.up.railway.app/favicon.png" />
+    <meta property="og:site_name" content="WisdomWell" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:creator" content="@boobeh123" />
+    <meta name="twitter:title" content="WisdomWell - Share & Discover Inspirational Quotes" />
+    <meta name="twitter:description" content="Join WisdomWell to share and discover motivational quotes. A community-driven platform for inspiration, wisdom, and positive thinking." />
+    <meta name="twitter:image" content="https://wisdomwell.up.railway.app/favicon.png" />
+    <meta name="theme-color" content="#2c3e50" />
+    <link rel="canonical" href="https://wisdomwell.up.railway.app/" />
+    <!-- Preload -->
+    <link rel="preload" href="./public/style.css" as="style">
+    <link rel="preload" href="./public/main.js" as="script">
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/png" href="/favicon.png">
-    <title>WisdomWell - Share & Discover Inspirational Quotes</title>
-    <meta name="title" content="WisdomWell - Share & Discover Inspirational Quotes">
-    <meta name="description" content="Join WisdomWell to share and discover motivational quotes. A community-driven platform for inspiration, wisdom, and positive thinking.">
-    <meta name="keywords" content="motivational quotes, inspirational quotes, wisdom, motivation, positive thinking, life quotes, daily inspiration">
-    <meta name="author" content="Bobby Asakawa">
     <!-- Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google fonts -->
@@ -20,14 +36,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
     <!-- External CSS -->
     <link rel="stylesheet" href="/style.css">
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "WisdomWell",
+        "description": "A community-driven platform for sharing and discovering inspirational quotes. Users can add, edit, and like motivational quotes.",
+        "url": "https://wisdomwell.up.railway.app/",
+        "applicationCategory": "SocialApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Bobby Asakawa",
+            "url": "https://bobby-asakawa.netlify.app/"
+        },
+        "featureList": [
+            "Share motivational quotes",
+            "Discover inspirational content",
+            "Like and interact with quotes",
+            "Edit and manage your quotes"
+        ],
+        "screenshot": "https://wisdomwell.up.railway.app/favicon.png"
+    }
+    </script>
+    <title>WisdomWell - Share & Discover Inspirational Quotes</title>
 </head>
 <body>
     <header class="main-header" role="banner">
         <div class="header-content">
-            <div class="logo-section">
+            <section class="logo-section">
                 <h1 class="logo">WisdomWell</h1>
                 <p class="tagline">Share and discover words that inspire</p>
-            </div>
+            </section>
             <nav class="main-nav" role="navigation" aria-label="Main navigation">
                 <ul>
                     <li><a href="/" class="active" aria-current="page">Home</a></li>
@@ -42,98 +89,99 @@
             <section class="add-quote" aria-labelledby="add-quote-title">
                 <h2 id="add-quote-title">Add a Quote</h2>
                 <p>Share your favorite motivational quote with the world!</p>
-                <form action="/addQuotes" method="POST">
+                <form action="/addQuotes" method="POST" aria-label="Add new quote">
                     <div class="form-group">
                         <label for="author-name" class="visually-hidden">Author's Name</label>
-                        <input type="text" id="author-name" placeholder="Author's Name" name="name" required>
+                        <input type="text" id="author-name" placeholder="Author's Name" name="name" required aria-required="true">
                         
                         <label for="quote-text" class="visually-hidden">Quote</label>
-                        <input type="text" id="quote-text" placeholder="Quote" name="quote" required>
+                        <input type="text" id="quote-text" placeholder="Quote" name="quote" required aria-required="true">
                         
-                        <button type="submit">Add Quote</button>
+                        <button type="submit" aria-label="Submit new quote">Add Quote</button>
                     </div>
                 </form>
             </section>
 
             <section class="quotes" aria-labelledby="quotes-title">
                 <h2 id="quotes-title">Quotes Collection</h2>
-                <div class="quotes-list" role="list">
+                <ul class="quotes-list" role="list" aria-label="Collection of motivational quotes">
                     <% for(let i = 0; i < quotes.length; i++) {%>
-                        <article class="quote-card" data-id="<%= quotes[i]._id.toString() %>" role="listitem">
-                            <div class="quote-content">
-                                <blockquote class="quote-text">"<%= quotes[i].quote %>"</blockquote>
-                                <p class="quote-author">- <%= quotes[i].name %></p>
-                            </div>
-                            <div class="quote-actions">
-                                <button class="like-btn" title="Like this quote" aria-label="Like quote">
+                        <li class="quote-card" data-id="<%= quotes[i]._id.toString() %>" role="listitem">
+                            <article class="quote-content" aria-label="Quote by <%= quotes[i].name %>">
+                                <blockquote class="quote-text" aria-label="Quote text">"<%= quotes[i].quote %>"</blockquote>
+                                <footer class="quote-author" aria-label="Quote author">- <%= quotes[i].name %></footer>
+                            </article>
+                            <nav class="quote-actions" aria-label="Actions for quote by <%= quotes[i].name %>">
+                                <button class="like-btn" title="Like this quote" aria-label="Like quote by <%= quotes[i].name %>" aria-pressed="<%= quotes[i].likes > 0 ? 'true' : 'false' %>">
                                     <i class="fas fa-heart" aria-hidden="true"></i>
-                                    <span class="likes-count"><%= quotes[i].likes %></span>
+                                    <span class="likes-count" aria-label="<%= quotes[i].likes %> likes"><%= quotes[i].likes %></span>
                                 </button>
-                                <button class="edit-btn" title="Edit this quote" aria-label="Edit quote">
+                                <button class="edit-btn" title="Edit this quote" aria-label="Edit quote by <%= quotes[i].name %>">
                                     <i class="fas fa-edit" aria-hidden="true"></i>
                                 </button>
-                                <button class="delete-btn" title="Delete this quote" aria-label="Delete quote">
+                                <button class="delete-btn" title="Delete this quote" aria-label="Delete quote by <%= quotes[i].name %>">
                                     <i class="fas fa-trash" aria-hidden="true"></i>
                                 </button>
-                            </div>
-                        </article>
+                            </nav>
+                        </li>
                     <% } %>
-                </div>
+                </ul>
             </section>
 
             <!-- Edit Modal -->
-            <div id="editModal" class="modal" role="dialog" aria-labelledby="edit-modal-title" aria-hidden="true">
+            <dialog id="editModal" class="modal" aria-labelledby="edit-modal-title" aria-describedby="edit-modal-description">
                 <div class="modal-content">
-                    <button class="close" aria-label="Close modal">&times;</button>
+                    <button class="close" aria-label="Close edit modal">&times;</button>
                     <h2 id="edit-modal-title">Edit Quote</h2>
-                    <form id="editForm">
+                    <p id="edit-modal-description" class="visually-hidden">Edit the quote text and author name</p>
+                    <form id="editForm" aria-label="Edit quote form">
                         <input type="hidden" id="editId">
                         <div class="form-group">
                             <label for="editName" class="visually-hidden">Author's Name</label>
-                            <input type="text" id="editName" placeholder="Author's Name" required>
+                            <input type="text" id="editName" placeholder="Author's Name" required aria-required="true">
                             
                             <label for="editQuote" class="visually-hidden">Quote</label>
-                            <input type="text" id="editQuote" placeholder="Quote" required>
+                            <input type="text" id="editQuote" placeholder="Quote" required aria-required="true">
                             
-                            <button type="submit">Save Changes</button>
+                            <button type="submit" aria-label="Save quote changes">Save Changes</button>
                         </div>
                     </form>
                 </div>
-            </div>
+            </dialog>
         </div>
     </main>
 
-    <div id="message" role="alert" aria-live="polite"></div>
+    <aside id="message" role="alert" aria-live="polite" aria-atomic="true"></aside>
 
     <footer class="main-footer" role="contentinfo">
         <div class="footer-content">
-            <div class="footer-section">
+            <section class="footer-section">
                 <h3>WisdomWell</h3>
                 <p>Share and discover words that inspire</p>
-            </div>
-            <div class="footer-section">
+            </section>
+            <section class="footer-section">
                 <h4>Links</h4>
                 <ul>
                     <li><a href="/privacy">Privacy Policy</a></li>
                 </ul>
-            </div>
-            <div class="footer-section">
+            </section>
+            <section class="footer-section">
                 <h4>Connect</h4>
-                <div class="social-links">
-                    <a href="https://x.com/boobeh123" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
-                        <i class="fab fa-twitter" aria-hidden="true"></i>
+                <nav class="social-links" aria-label="Social media links">
+                    <a href="https://x.com/boobeh123" target="_blank" rel="noopener noreferrer" aria-label="Follow us on X (formerly Twitter)">
+                        <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
                     </a>
-                    <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                    <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub repository">
                         <i class="fab fa-github" aria-hidden="true"></i>
                     </a>
-                    <a href="https://bobby-asakawa.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Portfolio">
+                    <a href="https://bobby-asakawa.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Visit developer's portfolio">
                         <i class="fa-solid fa-globe" aria-hidden="true"></i>
                     </a>
-                </div>
-            </div>
+                </nav>
+            </section>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 WisdomWell. All rights reserved.</p>
+            <p><span class="copyright"></span>. All rights reserved.</p>
         </div>
     </footer>
 
