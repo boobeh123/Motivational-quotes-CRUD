@@ -129,10 +129,23 @@ app.get('/', (request, response) => {
     });
 });
 
-app.post('/addQuotes', validateQuoteInput, (request, response) => {
+const quoteLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // limit each IP to 10 quotes per hour
+    message: 'Too many quotes created, please try again later'
+});
+
+app.post('/addQuotes', quoteLimiter, validateQuoteInput, (request, response) => {
+    const { name, quote, authorId } = request.body;
+    
+    if (!name || !quote || !authorId) {
+        return response.status(400).json({ error: 'Name, quote, and author ID are required' });
+    }
+
     db.collection(COLL_NAME).insertOne({
-        name: request.body.name,
-        quote: request.body.quote,
+        name: name,
+        quote: quote,
+        authorId: authorId,
         likes: 0,
         createdAt: new Date()
     })
@@ -217,24 +230,42 @@ app.put('/addUpvote', (request, response) => {
 });
 
 app.delete('/deleteQuote', (request, response) => {
-    const { id } = request.body;
+    const { id, authorId } = request.body;
     
-    if (!id) {
-        return response.status(400).json({ error: 'Quote ID is required' });
+    if (!id || !authorId) {
+        return response.status(400).json({ error: 'Quote ID and author ID are required' });
     }
 
     try {
         const objectId = new ObjectId(id);
-        db.collection(COLL_NAME).deleteOne({ _id: objectId })
-        .then(result => {
-            if (result.deletedCount === 0) {
+        // First find the quote to verify ownership
+        db.collection(COLL_NAME).findOne({ _id: objectId })
+        .then(quote => {
+            if (!quote) {
                 return response.status(404).json({ error: 'Quote not found' });
             }
-            response.json({ message: 'Quote deleted successfully' });
+            
+            // Verify the author is the one trying to delete
+            if (quote.authorId !== authorId) {
+                return response.status(403).json({ error: 'You can only delete your own quotes' });
+            }
+
+            // If ownership is verified, delete the quote
+            db.collection(COLL_NAME).deleteOne({ _id: objectId })
+            .then(result => {
+                if (result.deletedCount === 0) {
+                    return response.status(404).json({ error: 'Quote not found' });
+                }
+                response.json({ message: 'Quote deleted successfully' });
+            })
+            .catch(error => {
+                console.error('Error deleting quote:', error);
+                response.status(500).json({ error: 'Unable to delete quote' });
+            });
         })
         .catch(error => {
-            console.error('Error deleting quote:', error);
-            response.status(500).json({ error: 'Unable to delete quote' });
+            console.error('Error finding quote:', error);
+            response.status(500).json({ error: 'Unable to verify quote ownership' });
         });
     } catch (error) {
         console.error('Invalid ObjectId:', error);
@@ -251,3 +282,17 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+async function cleanupOrphanedQuotes() {
+    const threshold = new Date();
+    threshold.setDate(threshold.getDate() - 30); // 30 days old
+
+    try {
+        await db.collection(COLL_NAME).deleteMany({
+            updatedAt: { $lt: threshold },
+            likes: 0
+        });
+    } catch (error) {
+        console.error('Error cleaning up orphaned quotes:', error);
+    }
+}
