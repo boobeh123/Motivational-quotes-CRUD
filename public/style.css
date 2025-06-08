@@ -153,6 +153,11 @@ button:hover {
     color: #e74c3c;
 }
 
+.like-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 /* Modal */
 .modal {
     display: none;
@@ -186,27 +191,29 @@ button:hover {
 }
 
 /* Message */
-.message {
+#message {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    padding: 1rem 2rem;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
     border-radius: 5px;
     color: white;
+    font-weight: bold;
     display: none;
     z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.message.success {
-    background: #2ecc71;
+#message.success {
+    background-color: #2ecc71;
 }
 
-.message.error {
-    background: #e74c3c;
+#message.error {
+    background-color: #e74c3c;
 }
 
-.message.info {
-    background: #3498db;
+#message.info {
+    background-color: #3498db;
 }
 
 /* Responsive Design */
