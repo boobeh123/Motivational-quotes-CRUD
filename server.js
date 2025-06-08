@@ -112,6 +112,10 @@ app.get('/', (request, response) => {
     });
 });
 
+app.get('/privacy', (request, response) => {
+    response.render('privacy.ejs');
+});
+
 app.post('/addQuotes', validateQuoteInput, (request, response) => {
     db.collection(COLL_NAME).insertOne({
         name: request.body.name,
