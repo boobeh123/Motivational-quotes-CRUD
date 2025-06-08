@@ -9,10 +9,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const PORT = process.env.PORT;
 
-// Debug environment variables
-console.log('DB_STRING exists:', !!process.env.DB_STRING);
-console.log('DB_STRING starts with:', process.env.DB_STRING?.substring(0, 20) + '...');
-
 // Security middleware with custom CSP
 app.use(helmet({
     contentSecurityPolicy: {
@@ -90,28 +86,15 @@ const validateQuoteInput = (req, res, next) => {
 };
 
 // Connect to MongoDB
-const connectToMongo = async () => {
-    try {
-        if (!process.env.DB_STRING) {
-            throw new Error('MongoDB connection string is missing');
-        }
-
-        // Ensure the connection string starts with the correct protocol
-        const connectionString = process.env.DB_STRING.trim();
-        if (!connectionString.startsWith('mongodb://') && !connectionString.startsWith('mongodb+srv://')) {
-            throw new Error('Invalid MongoDB connection string format');
-        }
-
-        const client = await MongoClient.connect(connectionString);
-        console.log(`Connected to ${DB_NAME} Database`);
-        db = client.db(DB_NAME);
-    } catch (error) {
-        console.error('Failed to connect to MongoDB:', error);
-        process.exit(1);
-    }
-};
-
-connectToMongo();
+MongoClient.connect(process.env.DB_STRING)
+.then(client => {
+    console.log(`Connected to ${DB_NAME} Database`);
+    db = client.db(DB_NAME);
+})
+.catch(error => {
+    console.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
+});
 
 // Middleware
 app.set('view engine', 'ejs');
@@ -129,23 +112,10 @@ app.get('/', (request, response) => {
     });
 });
 
-const quoteLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10, // limit each IP to 10 quotes per hour
-    message: 'Too many quotes created, please try again later'
-});
-
-app.post('/addQuotes', quoteLimiter, validateQuoteInput, (request, response) => {
-    const { name, quote, authorId } = request.body;
-    
-    if (!name || !quote || !authorId) {
-        return response.status(400).json({ error: 'Name, quote, and author ID are required' });
-    }
-
+app.post('/addQuotes', validateQuoteInput, (request, response) => {
     db.collection(COLL_NAME).insertOne({
-        name: name,
-        quote: quote,
-        authorId: authorId,
+        name: request.body.name,
+        quote: request.body.quote,
         likes: 0,
         createdAt: new Date()
     })
@@ -230,42 +200,24 @@ app.put('/addUpvote', (request, response) => {
 });
 
 app.delete('/deleteQuote', (request, response) => {
-    const { id, authorId } = request.body;
+    const { id } = request.body;
     
-    if (!id || !authorId) {
-        return response.status(400).json({ error: 'Quote ID and author ID are required' });
+    if (!id) {
+        return response.status(400).json({ error: 'Quote ID is required' });
     }
 
     try {
         const objectId = new ObjectId(id);
-        // First find the quote to verify ownership
-        db.collection(COLL_NAME).findOne({ _id: objectId })
-        .then(quote => {
-            if (!quote) {
+        db.collection(COLL_NAME).deleteOne({ _id: objectId })
+        .then(result => {
+            if (result.deletedCount === 0) {
                 return response.status(404).json({ error: 'Quote not found' });
             }
-            
-            // Verify the author is the one trying to delete
-            if (quote.authorId !== authorId) {
-                return response.status(403).json({ error: 'You can only delete your own quotes' });
-            }
-
-            // If ownership is verified, delete the quote
-            db.collection(COLL_NAME).deleteOne({ _id: objectId })
-            .then(result => {
-                if (result.deletedCount === 0) {
-                    return response.status(404).json({ error: 'Quote not found' });
-                }
-                response.json({ message: 'Quote deleted successfully' });
-            })
-            .catch(error => {
-                console.error('Error deleting quote:', error);
-                response.status(500).json({ error: 'Unable to delete quote' });
-            });
+            response.json({ message: 'Quote deleted successfully' });
         })
         .catch(error => {
-            console.error('Error finding quote:', error);
-            response.status(500).json({ error: 'Unable to verify quote ownership' });
+            console.error('Error deleting quote:', error);
+            response.status(500).json({ error: 'Unable to delete quote' });
         });
     } catch (error) {
         console.error('Invalid ObjectId:', error);
@@ -282,17 +234,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-async function cleanupOrphanedQuotes() {
-    const threshold = new Date();
-    threshold.setDate(threshold.getDate() - 30); // 30 days old
-
-    try {
-        await db.collection(COLL_NAME).deleteMany({
-            updatedAt: { $lt: threshold },
-            likes: 0
-        });
-    } catch (error) {
-        console.error('Error cleaning up orphaned quotes:', error);
-    }
-}
