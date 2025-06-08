@@ -1,3 +1,10 @@
+// Update copyright year
+document.addEventListener('DOMContentLoaded', function() {
+    const yearSpan = document.querySelector('footer p span');
+    if (yearSpan) {
+        yearSpan.innerHTML = `&copy; ${new Date().getFullYear()} Bobby Asakawa`;
+    }
+});
 // DOM Elements
 const quotesList = document.querySelector('.quotes-list');
 const messageDiv = document.getElementById('message');
