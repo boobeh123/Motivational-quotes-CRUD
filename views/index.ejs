@@ -5,6 +5,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WisdomWell - Share & Discover Inspirational Quotes</title>
+    <meta name="title" content="WisdomWell - Share & Discover Inspirational Quotes">
+    <meta name="description" content="Join WisdomWell to share and discover motivational quotes. A community-driven platform for inspiration, wisdom, and positive thinking.">
+    <meta name="keywords" content="motivational quotes, inspirational quotes, wisdom, motivation, positive thinking, life quotes, daily inspiration">
+    <meta name="author" content="Bobby Asakawa">
     <!-- Fontawesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google fonts -->
@@ -15,68 +19,121 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>WisdomWell</h1>
-            <p class="tagline">Share and discover words that inspire</p>
-        </header>
-
-        <section class="add-quote">
-            <h2>Add a Quote</h2>
-            <p>Share your favorite motivational quote with the world!</p>
-            <form action="/addQuotes" method="POST">
-                <div class="form-group">
-                    <input type="text" placeholder="Author's Name" name="name" required>
-                    <input type="text" placeholder="Quote" name="quote" required>
-                    <button type="submit">Add Quote</button>
-                </div>
-            </form>
-        </section>
-
-        <section class="quotes">
-            <h2>Quotes Collection</h2>
-            <div class="quotes-list">
-                <% for(let i = 0; i < quotes.length; i++) {%>
-                    <div class="quote-card" data-id="<%= quotes[i]._id.toString() %>">
-                        <div class="quote-content">
-                            <p class="quote-text">"<%= quotes[i].quote %>"</p>
-                            <p class="quote-author">- <%= quotes[i].name %></p>
-                        </div>
-                        <div class="quote-actions">
-                            <button class="like-btn" title="Like this quote">
-                                <i class="fas fa-heart"></i>
-                                <span class="likes-count"><%= quotes[i].likes %></span>
-                            </button>
-                            <button class="edit-btn" title="Edit this quote">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="delete-btn" title="Delete this quote">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                <% } %>
+    <header class="main-header" role="banner">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="logo">WisdomWell</h1>
+                <p class="tagline">Share and discover words that inspire</p>
             </div>
-        </section>
+            <nav class="main-nav" role="navigation" aria-label="Main navigation">
+                <ul>
+                    <li><a href="/" class="active" aria-current="page">Home</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-        <!-- Edit Modal -->
-        <div id="editModal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Edit Quote</h2>
-                <form id="editForm">
-                    <input type="hidden" id="editId">
+    <main role="main">
+        <div class="container">
+            <section class="add-quote" aria-labelledby="add-quote-title">
+                <h2 id="add-quote-title">Add a Quote</h2>
+                <p>Share your favorite motivational quote with the world!</p>
+                <form action="/addQuotes" method="POST">
                     <div class="form-group">
-                        <input type="text" id="editName" placeholder="Author's Name" required>
-                        <input type="text" id="editQuote" placeholder="Quote" required>
-                        <button type="submit">Save Changes</button>
+                        <label for="author-name" class="visually-hidden">Author's Name</label>
+                        <input type="text" id="author-name" placeholder="Author's Name" name="name" required>
+                        
+                        <label for="quote-text" class="visually-hidden">Quote</label>
+                        <input type="text" id="quote-text" placeholder="Quote" name="quote" required>
+                        
+                        <button type="submit">Add Quote</button>
                     </div>
                 </form>
+            </section>
+
+            <section class="quotes" aria-labelledby="quotes-title">
+                <h2 id="quotes-title">Quotes Collection</h2>
+                <div class="quotes-list" role="list">
+                    <% for(let i = 0; i < quotes.length; i++) {%>
+                        <article class="quote-card" data-id="<%= quotes[i]._id.toString() %>" role="listitem">
+                            <div class="quote-content">
+                                <blockquote class="quote-text">"<%= quotes[i].quote %>"</blockquote>
+                                <p class="quote-author">- <%= quotes[i].name %></p>
+                            </div>
+                            <div class="quote-actions">
+                                <button class="like-btn" title="Like this quote" aria-label="Like quote">
+                                    <i class="fas fa-heart" aria-hidden="true"></i>
+                                    <span class="likes-count"><%= quotes[i].likes %></span>
+                                </button>
+                                <button class="edit-btn" title="Edit this quote" aria-label="Edit quote">
+                                    <i class="fas fa-edit" aria-hidden="true"></i>
+                                </button>
+                                <button class="delete-btn" title="Delete this quote" aria-label="Delete quote">
+                                    <i class="fas fa-trash" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </article>
+                    <% } %>
+                </div>
+            </section>
+
+            <!-- Edit Modal -->
+            <div id="editModal" class="modal" role="dialog" aria-labelledby="edit-modal-title" aria-hidden="true">
+                <div class="modal-content">
+                    <button class="close" aria-label="Close modal">&times;</button>
+                    <h2 id="edit-modal-title">Edit Quote</h2>
+                    <form id="editForm">
+                        <input type="hidden" id="editId">
+                        <div class="form-group">
+                            <label for="editName" class="visually-hidden">Author's Name</label>
+                            <input type="text" id="editName" placeholder="Author's Name" required>
+                            
+                            <label for="editQuote" class="visually-hidden">Quote</label>
+                            <input type="text" id="editQuote" placeholder="Quote" required>
+                            
+                            <button type="submit">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div id="message"></div>
+    <div id="message" role="alert" aria-live="polite"></div>
+
+    <footer class="main-footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WisdomWell</h3>
+                <p>Share and discover words that inspire</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="https://x.com/boobeh123" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                        <i class="fab fa-twitter" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                        <i class="fab fa-github" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://bobby-asakawa.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Portfolio">
+                        <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 WisdomWell. All rights reserved.</p>
+        </div>
+    </footer>
+
     <script src="/main.js"></script>
 </body>
 </html>
