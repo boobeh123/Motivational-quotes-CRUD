@@ -37,7 +37,7 @@
             <h2>Quotes Collection</h2>
             <div class="quotes-list">
                 <% for(let i = 0; i < quotes.length; i++) {%>
-                    <div class="quote-card" data-id="<%= quotes[i]._id.toString() %>">
+                    <div class="quote-card" data-id="<%= quotes[i]._id.toString() %>" data-author-id="<%= quotes[i].authorId %>">
                         <div class="quote-content">
                             <p class="quote-text">"<%= quotes[i].quote %>"</p>
                             <p class="quote-author">- <%= quotes[i].name %></p>
