@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - WisdomWell</title>
+    <meta name="title" content="Privacy Policy - WisdomWell">
+    <meta name="description" content="Learn how WisdomWell handles and protects your data. Our privacy policy explains what information we collect, how we use it, and your rights regarding your data.">
+    <meta name="keywords" content="privacy policy, data protection, user privacy, data security, WisdomWell privacy, quote platform privacy">
+    <meta name="author" content="Bobby Asakawa">
+    <!-- Fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header class="main-header" role="banner">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1 class="logo">WisdomWell</h1>
+                <p class="tagline">Share and discover words that inspire</p>
+            </div>
+            <nav class="main-nav" role="navigation" aria-label="Main navigation">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/privacy" class="active" aria-current="page">Privacy policy</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main role="main">
+        <div class="container">
+            <section class="privacy-policy" aria-labelledby="privacy-title">
+                <h2 id="privacy-title">Privacy Policy</h2>
+                <p class="last-updated">Last updated: <%= new Date().toLocaleDateString() %></p>
+
+                <div class="policy-content">
+                    <h3>1. Information We Collect</h3>
+                    <p>WisdomWell is a platform for sharing and discovering motivational quotes. We collect and store the following information:</p>
+                    <ul>
+                        <li>Quotes submitted by users</li>
+                        <li>Author names associated with quotes</li>
+                        <li>Like counts for each quote</li>
+                        <li>Timestamps for quote creation and updates</li>
+                    </ul>
+
+                    <h3>2. How We Use Your Information</h3>
+                    <p>The information we collect is used solely for the purpose of:</p>
+                    <ul>
+                        <li>Displaying quotes on our platform</li>
+                        <li>Tracking quote popularity through likes</li>
+                        <li>Maintaining the chronological order of quotes</li>
+                    </ul>
+
+                    <h3>3. Data Storage and Security</h3>
+                    <p>We take the following measures to protect your data:</p>
+                    <ul>
+                        <li>All data is stored securely in MongoDB</li>
+                        <li>We implement rate limiting to prevent abuse</li>
+                        <li>Input validation and sanitization for all submissions</li>
+                        <li>Regular security updates and monitoring</li>
+                    </ul>
+
+                    <h3>4. What We Don't Collect</h3>
+                    <p>We do not collect or store:</p>
+                    <ul>
+                        <li>Personal identifying information</li>
+                        <li>Email addresses</li>
+                        <li>IP addresses (except for rate limiting)</li>
+                        <li>Cookies or tracking data</li>
+                    </ul>
+
+                    <h3>5. Your Rights</h3>
+                    <p>You have the right to:</p>
+                    <ul>
+                        <li>Submit quotes anonymously</li>
+                        <li>Edit or delete your submitted quotes</li>
+                        <li>Like or unlike quotes</li>
+                    </ul>
+
+                    <h3>6. Third-Party Services</h3>
+                    <p>We use the following third-party services:</p>
+                    <ul>
+                        <li>MongoDB for data storage</li>
+                        <li>Font Awesome for icons</li>
+                        <li>Google Fonts for typography</li>
+                    </ul>
+
+                    <h3>7. Changes to This Policy</h3>
+                    <p>We may update this privacy policy from time to time. Any changes will be reflected in the "Last updated" date at the top of this page.</p>
+
+                    <h3>8. Contact</h3>
+                    <p>If you have any questions about this privacy policy, please contact us through our <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer">GitHub repository</a>.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="main-footer" role="contentinfo">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WisdomWell</h3>
+                <p>Share and discover words that inspire</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <ul>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="https://x.com/boobeh123" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                        <i class="fab fa-twitter" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://github.com/boobeh123/" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                        <i class="fab fa-github" aria-hidden="true"></i>
+                    </a>
+                    <a href="https://bobby-asakawa.netlify.app/" target="_blank" rel="noopener noreferrer" aria-label="Portfolio">
+                        <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 WisdomWell. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html> 
