@@ -45,7 +45,7 @@
         "name": "Privacy Policy - WisdomWell",
         "description": "Learn how WisdomWell handles and protects your data. Our privacy policy explains what information we collect, how we use it, and your rights regarding your data.",
         "url": "https://wisdomwell.up.railway.app/privacy",
-        "dateModified": "2025-06-21",
+        "dateModified": "2026-10-30",
         "author": {
             "@type": "Person",
             "name": "Bobby Asakawa",
@@ -61,7 +61,7 @@
             "name": "WisdomWell Privacy Policy",
             "headline": "Privacy Policy - WisdomWell",
             "datePublished": "2025-06-07",
-            "dateModified": "2025-06-21",
+            "dateModified": "2026-10-30",
             "author": {
                 "@type": "Person",
                 "name": "Bobby Asakawa"
@@ -96,7 +96,7 @@
             <article class="privacy-policy" aria-labelledby="privacy-title">
                 <header>
                     <h2 id="privacy-title">Privacy Policy</h2>
-                    <p class="last-updated" aria-label="Last updated date">Last updated: 6/21/2025 </p>
+                    <p class="last-updated" aria-label="Last updated date">Last updated: 10/30/2026 </p>
                 </header>
 
                 <div class="policy-content" role="article">
@@ -108,6 +108,7 @@
                             <li>Author names associated with quotes</li>
                             <li>Like counts for each quote</li>
                             <li>Timestamps for quote creation and updates</li>
+                            <li>A random code for each browser that adds a quote, stored with its quotes only as a one-way hash (see section 4)</li>
                         </ul>
                     </section>
 
@@ -118,6 +119,7 @@
                             <li>Displaying quotes on our platform</li>
                             <li>Tracking quote popularity through likes</li>
                             <li>Maintaining the chronological order of quotes</li>
+                            <li>Letting the browser that added a quote edit or delete it</li>
                         </ul>
                     </section>
 
@@ -139,8 +141,9 @@
                             <li>Personal identifying information</li>
                             <li>Email addresses</li>
                             <li>IP addresses (except for rate limiting, each IP allowed a limited amount requests and is not stored)</li>
-                            <li>Cookies or tracking data</li>
+                            <li>Tracking cookies or tracking data</li>
                         </ul>
+                        <p>The one cookie WisdomWell sets is <code>ww_key</code>. It's created when you add a quote, holds a random code, and lets the same browser edit or delete the quotes it added. It doesn't identify you, isn't shared with anyone, and isn't used for tracking or ads. It lasts one year. If you clear your cookies or switch browsers or devices, you can no longer edit or delete those quotes.</p>
                     </section>
 
                     <section aria-labelledby="user-rights-title">
@@ -148,7 +151,7 @@
                         <p>You have the right to:</p>
                         <ul role="list" aria-label="User rights">
                             <li>Submit quotes anonymously</li>
-                            <li>Edit or delete submitted quotes</li>
+                            <li>Edit or delete the quotes you submitted, from the browser you submitted them with</li>
                             <li>Like quotes</li>
                         </ul>
                     </section>

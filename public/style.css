@@ -237,6 +237,13 @@ textarea {
     font-size: 0.9rem;
 }
 
+/* Under the add form: who can edit or delete a quote */
+.add-quote .form-note {
+    margin: 1rem 0 0;
+    color: #5f6b6d;
+    font-size: 0.9rem;
+}
+
 input[type="text"]:focus,
 textarea:focus {
     outline: none;

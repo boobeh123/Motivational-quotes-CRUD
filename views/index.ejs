@@ -106,6 +106,7 @@
                         </div>
                     </div>
                 </form>
+                <p class="form-note">You can edit or delete the quotes you add, from this browser.</p>
             </section>
 
             <section class="quotes" aria-labelledby="quotes-title">
@@ -124,12 +125,15 @@
                                     <span class="visually-hidden">Like quote by <%= quotes[i].name %>. Likes:</span>
                                     <span class="likes-count"><%= quotes[i].likes %></span>
                                 </button>
-                                <button class="edit-btn" title="Edit this quote" aria-label="Edit quote by <%= quotes[i].name %>">
-                                    <i class="fas fa-edit" aria-hidden="true"></i>
-                                </button>
-                                <button class="delete-btn" title="Delete this quote" aria-label="Delete quote by <%= quotes[i].name %>">
-                                    <i class="fas fa-trash" aria-hidden="true"></i>
-                                </button>
+                                <%# Only the browser that added a quote can edit or delete it %>
+                                <% if (quotes[i].isOwner) { %>
+                                    <button class="edit-btn" title="Edit this quote" aria-label="Edit quote by <%= quotes[i].name %>">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </button>
+                                    <button class="delete-btn" title="Delete this quote" aria-label="Delete quote by <%= quotes[i].name %>">
+                                        <i class="fas fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                <% } %>
                             </div>
                         </li>
                     <% } %>
