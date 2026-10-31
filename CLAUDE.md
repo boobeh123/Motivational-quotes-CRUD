@@ -126,7 +126,10 @@ The whole server is `server.js`. In order:
 
   Check any new color against its background.
 - **`prefers-reduced-motion`:** the block at the end of style.css cuts animations and transitions for visitors who ask for less motion.
-- **`public/favicon.png`** is favicon.svg rendered at 512px with headless Chromium. The social tags use it with `twitter:card` set to `summary`.
+- **`public/favicon.png`** is favicon.svg rendered at 512px with headless Chromium.
+- **`public/og-image.png`** (1200×630) is the social card that link previews show (`og:image`, `twitter:card` `summary_large_image`), on the home and privacy pages.
+  - It's rendered from the HTML template `~/projects/.scratchpad/wisdomwell/social-card/card.html` (on Bobby's Pi) with headless Chromium.
+  - To change it, edit the template, render it again, and keep the width, height and alt tags in step.
 
 ## The privacy policy
 
@@ -148,10 +151,10 @@ An approved plan (Oct 30 2026), one PR at a time.
 
 Done:
 - PR #2: adding, editing, liking and deleting fixes. This file arrived with it.
-- PR 3: page, accessibility and CSP fixes.
+- PR #3: page, accessibility and CSP fixes.
+- PR 4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
 
 Next:
-4. A quote box with a character counter, and a 1200×630 social card (`twitter:card` back to `summary_large_image`).
 5. Only the browser that added a quote can edit or delete it: a `ww_key` cookie, with `ownerHash` on each quote.
 6. Like once per browser.
 7. Sort and search.
