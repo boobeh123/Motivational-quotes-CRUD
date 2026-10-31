@@ -119,8 +119,9 @@
                                 <footer class="quote-author">- <%= quotes[i].name %></footer>
                             </article>
                             <div class="quote-actions">
-                                <button class="like-btn" title="Like this quote">
-                                    <i class="fas fa-heart" aria-hidden="true"></i>
+                                <%# A toggle: a solid heart and aria-pressed once this browser has liked the quote %>
+                                <button class="like-btn" title="<%= quotes[i].likedByViewer ? 'Remove your like' : 'Like this quote' %>" aria-pressed="<%= quotes[i].likedByViewer %>">
+                                    <i class="<%= quotes[i].likedByViewer ? 'fas' : 'far' %> fa-heart" aria-hidden="true"></i>
                                     <%# The hidden text makes the button's name "Like quote by …. Likes: 3", count included %>
                                     <span class="visually-hidden">Like quote by <%= quotes[i].name %>. Likes:</span>
                                     <span class="likes-count"><%= quotes[i].likes %></span>

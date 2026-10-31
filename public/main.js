@@ -54,28 +54,49 @@ function handleQuoteAction(e) {
     }
 }
 
+// Likes are one per browser: pressing the button again takes the like back
 async function handleLike(quoteCard, quoteId) {
+    const likeButton = quoteCard.querySelector('.like-btn');
     const likesCount = quoteCard.querySelector('.likes-count');
+    const wasLiked = likeButton.getAttribute('aria-pressed') === 'true';
+
+    // Ignore presses while a request is on its way, so a quick double press
+    // can't like and unlike at once. A flag, not disabled, which would take
+    // keyboard focus off the button.
+    if (likeButton.dataset.busy) return;
+    likeButton.dataset.busy = 'true';
 
     try {
-        // Only the id: the server adds the like to whatever the count is now
-        const response = await fetch('/addUpvote', {
+        // Only the id: the server keeps the count
+        const response = await fetch(wasLiked ? '/removeUpvote' : '/addUpvote', {
             method: 'PUT',
             headers: JSON_HEADERS,
             body: JSON.stringify({ id: quoteId })
         });
 
         if (!response.ok) {
-            return showMessage(await errorMessage(response, 'Failed to like quote'), 'error');
+            return showMessage(await errorMessage(response, wasLiked ? 'Failed to remove like' : 'Failed to like quote'), 'error');
         }
 
         const data = await response.json();
         likesCount.textContent = data.likes;
-        showMessage('Quote liked successfully!', 'success');
+        showLiked(likeButton, data.liked);
+        showMessage(data.liked ? 'Quote liked successfully!' : 'Like removed', 'success');
     } catch (error) {
         console.error('Error:', error);
-        showMessage('Failed to like quote', 'error');
+        showMessage(wasLiked ? 'Failed to remove like' : 'Failed to like quote', 'error');
+    } finally {
+        delete likeButton.dataset.busy;
     }
+}
+
+// Shows a like button as pressed (a solid heart) or not (an outline)
+function showLiked(likeButton, liked) {
+    likeButton.setAttribute('aria-pressed', liked);
+    likeButton.title = liked ? 'Remove your like' : 'Like this quote';
+    const heart = likeButton.querySelector('.fa-heart');
+    heart.classList.toggle('fas', liked);
+    heart.classList.toggle('far', !liked);
 }
 
 function handleEdit(quoteCard, quoteId) {
