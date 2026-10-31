@@ -7,10 +7,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 // DOM Elements
 const quotesList = document.querySelector('.quotes-list');
-const messageDiv = document.getElementById('message');
-const editModal = document.getElementById('editModal');
-const editForm = document.getElementById('editForm');
+const messageDiv = document.querySelector('#message');
+const editModal = document.querySelector('#editModal');
+const editForm = document.querySelector('#editForm');
+const editError = document.querySelector('#editError');
 const closeModal = document.querySelector('.close');
+
+// fetch() calls send JSON and ask for JSON back, so a failure arrives as { error }
+const JSON_HEADERS = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
 
 // Event Listeners
 quotesList.addEventListener('click', handleQuoteAction);
@@ -40,20 +44,19 @@ function handleQuoteAction(e) {
 
 async function handleLike(quoteCard, quoteId) {
     const likesCount = quoteCard.querySelector('.likes-count');
-    const currentLikes = parseInt(likesCount.textContent);
 
     try {
+        // Only the id: the server adds the like to whatever the count is now
         const response = await fetch('/addUpvote', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: quoteId,
-                likes: currentLikes
-            })
+            headers: JSON_HEADERS,
+            body: JSON.stringify({ id: quoteId })
         });
 
-        if (!response.ok) throw new Error('Failed to update likes');
-        
+        if (!response.ok) {
+            return showMessage(await errorMessage(response, 'Failed to like quote'), 'error');
+        }
+
         const data = await response.json();
         likesCount.textContent = data.likes;
         showMessage('Quote liked successfully!', 'success');
@@ -64,37 +67,43 @@ async function handleLike(quoteCard, quoteId) {
 }
 
 function handleEdit(quoteCard, quoteId) {
-    const quoteText = quoteCard.querySelector('.quote-text').textContent.replace(/"/g, '');
-    const quoteAuthor = quoteCard.querySelector('.quote-author').textContent.replace('- ', '');
+    // The card's data attributes hold the quote exactly as saved, quotation marks included
+    document.querySelector('#editId').value = quoteId;
+    document.querySelector('#editName').value = quoteCard.dataset.name;
+    document.querySelector('#editQuote').value = quoteCard.dataset.quote;
+    editError.hidden = true;
 
-    document.getElementById('editId').value = quoteId;
-    document.getElementById('editName').value = quoteAuthor;
-    document.getElementById('editQuote').value = quoteText;
-    
     editModal.style.display = 'block';
+}
+
+// Shows why a save failed inside the dialog, which stays open so the text can be fixed
+function showEditError(message) {
+    editError.textContent = message;
+    editError.hidden = false;
 }
 
 async function handleEditSubmit(e) {
     e.preventDefault();
-    
-    const quoteId = document.getElementById('editId').value;
-    const name = document.getElementById('editName').value;
-    const quote = document.getElementById('editQuote').value;
+
+    const quoteId = document.querySelector('#editId').value;
+    const name = document.querySelector('#editName').value;
+    const quote = document.querySelector('#editQuote').value;
 
     try {
         const response = await fetch('/editQuote', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: JSON_HEADERS,
             body: JSON.stringify({ id: quoteId, name, quote })
         });
 
-        if (!response.ok) throw new Error('Failed to update quote');
-        
-        const data = await response.json();
+        if (!response.ok) {
+            return showEditError(await errorMessage(response, 'Failed to update quote'));
+        }
+
         window.location.reload();
     } catch (error) {
         console.error('Error:', error);
-        showMessage('Failed to update quote', 'error');
+        showEditError('Failed to update quote');
     }
 }
 
@@ -104,13 +113,14 @@ async function handleDelete(quoteId) {
     try {
         const response = await fetch('/deleteQuote', {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: JSON_HEADERS,
             body: JSON.stringify({ id: quoteId })
         });
 
-        if (!response.ok) throw new Error('Failed to delete quote');
-        
-        const data = await response.json();
+        if (!response.ok) {
+            return showMessage(await errorMessage(response, 'Failed to delete quote'), 'error');
+        }
+
         const quoteCard = document.querySelector(`[data-id="${quoteId}"]`);
         quoteCard.remove();
         showMessage('Quote deleted successfully!', 'success');
@@ -128,4 +138,18 @@ function showMessage(message, type = 'info') {
     setTimeout(() => {
         messageDiv.style.display = 'none';
     }, 3000);
+}
+
+// Reads the reason from a failed fetch(): the server answers { error: '...' }.
+// The rate limiter answers in plain text, and anything unreadable gets the fallback.
+async function errorMessage(response, fallback) {
+    if (response.status === 429) {
+        return 'Too many requests. Please try again later.';
+    }
+    try {
+        const data = await response.json();
+        return data.error || fallback;
+    } catch {
+        return fallback;
+    }
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <!-- Google fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/style.css">
+    <title><%= title %> - WisdomWell</title>
+</head>
+<body class="error-body">
+    <header class="main-header">
+        <div class="header-content">
+            <section class="logo-section" aria-label="Site branding">
+                <p class="logo">WisdomWell</p>
+                <p class="tagline">Share and discover words that inspire</p>
+            </section>
+            <nav class="main-nav" aria-label="Main navigation">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="error-page" aria-labelledby="error-title">
+                <h1 id="error-title"><%= title %></h1>
+                <p><%= message %></p>
+                <a href="/">Back to the quotes</a>
+            </section>
+        </div>
+    </main>
+
+    <footer class="main-footer error-footer">
+        <div class="footer-bottom">
+            <p>&copy; <%= new Date().getFullYear() %> Bobby Asakawa. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

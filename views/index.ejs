@@ -89,13 +89,16 @@
             <section class="add-quote" aria-labelledby="add-quote-title">
                 <h2 id="add-quote-title">Add a Quote</h2>
                 <p>Share your favorite motivational quote with the world!</p>
+                <% if (formError) { %>
+                    <p class="form-error" role="alert"><%= formError %></p>
+                <% } %>
                 <form action="/addQuotes" method="POST" aria-label="Add new quote">
                     <div class="form-group">
                         <label for="author-name" class="visually-hidden">Author's Name</label>
-                        <input type="text" id="author-name" placeholder="Author's Name" name="name" required aria-required="true">
-                        
+                        <input type="text" id="author-name" placeholder="Author's Name" name="name" value="<%= formValues.name %>" maxlength="<%= limits.name %>" required aria-required="true">
+
                         <label for="quote-text" class="visually-hidden">Quote</label>
-                        <input type="text" id="quote-text" placeholder="Quote" name="quote" required aria-required="true">
+                        <input type="text" id="quote-text" placeholder="Quote" name="quote" value="<%= formValues.quote %>" maxlength="<%= limits.quote %>" required aria-required="true">
                         
                         <button type="submit" aria-label="Submit new quote">Add Quote</button>
                     </div>
@@ -106,7 +109,7 @@
                 <h2 id="quotes-title">Quotes Collection</h2>
                 <ul class="quotes-list" role="list" aria-label="Collection of motivational quotes">
                     <% for(let i = 0; i < quotes.length; i++) {%>
-                        <li class="quote-card" data-id="<%= quotes[i]._id.toString() %>" role="listitem">
+                        <li class="quote-card" data-id="<%= quotes[i]._id.toString() %>" data-name="<%= quotes[i].name %>" data-quote="<%= quotes[i].quote %>" role="listitem">
                             <article class="quote-content" aria-label="Quote by <%= quotes[i].name %>">
                                 <blockquote class="quote-text" aria-label="Quote text">"<%= quotes[i].quote %>"</blockquote>
                                 <footer class="quote-author" aria-label="Quote author">- <%= quotes[i].name %></footer>
@@ -136,12 +139,13 @@
                     <p id="edit-modal-description" class="visually-hidden">Edit the quote text and author name</p>
                     <form id="editForm" aria-label="Edit quote form">
                         <input type="hidden" id="editId">
+                        <p class="form-error" id="editError" role="alert" hidden></p>
                         <div class="form-group">
                             <label for="editName" class="visually-hidden">Author's Name</label>
-                            <input type="text" id="editName" placeholder="Author's Name" required aria-required="true">
-                            
+                            <input type="text" id="editName" placeholder="Author's Name" maxlength="<%= limits.name %>" required aria-required="true">
+
                             <label for="editQuote" class="visually-hidden">Quote</label>
-                            <input type="text" id="editQuote" placeholder="Quote" required aria-required="true">
+                            <input type="text" id="editQuote" placeholder="Quote" maxlength="<%= limits.quote %>" required aria-required="true">
                             
                             <button type="submit" aria-label="Save quote changes">Save Changes</button>
                         </div>

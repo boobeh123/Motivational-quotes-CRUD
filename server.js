@@ -5,6 +5,7 @@ const MongoClient = require('mongodb').MongoClient;
 const { ObjectId } = require('mongodb');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
+const { MAX_NAME_LENGTH, MAX_QUOTE_LENGTH, checkQuoteInput, isQuoteId } = require('./middleware/validators');
 const PORT = process.env.PORT || 3000;
 
 // Railway sends each request through one proxy. Trusting that one hop makes
@@ -24,6 +25,13 @@ app.use(helmet({
         }
     }
 }));
+
+// Views and static files. Static files come before the rate limiter, so the
+// CSS, JS and icons each page loads don't count toward it.
+app.set('view engine', 'ejs');
+// The forms' maxlength attributes use the same limits the server checks
+app.locals.limits = { name: MAX_NAME_LENGTH, quote: MAX_QUOTE_LENGTH };
+app.use(express.static('public'));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -49,184 +57,136 @@ if (!process.env.DB_STRING) {
 // Constants
 const DB_NAME = 'motivational-quotes';
 const COLL_NAME = 'quotes';
-const MAX_QUOTE_LENGTH = 500;
-const MAX_NAME_LENGTH = 100;
 
 let db;
 
-// Input validation middleware
-const validateQuoteInput = (req, res, next) => {
-    // Express 5 leaves req.body undefined when a request has no body
-    const { name, quote } = req.body ?? {};
-    
-    // Check if fields exist
-    if (!name || !quote) {
-        return res.status(400).json({ error: 'Name and quote are required' });
+// Sends an error page to browsers, and JSON to the page's fetch() calls,
+// which ask for it with their Accept header
+const sendError = (request, response, status, title, message) => {
+    if (request.accepts(['html', 'json']) === 'json') {
+        return response.status(status).json({ error: message });
     }
-
-    // Trim whitespace
-    req.body.name = name.trim();
-    req.body.quote = quote.trim();
-
-    // Validate lengths
-    if (req.body.name.length > MAX_NAME_LENGTH) {
-        return res.status(400).json({ error: `Name must be less than ${MAX_NAME_LENGTH} characters` });
-    }
-    if (req.body.quote.length > MAX_QUOTE_LENGTH) {
-        return res.status(400).json({ error: `Quote must be less than ${MAX_QUOTE_LENGTH} characters` });
-    }
-
-    // Validate content (basic sanitization)
-    if (!/^[a-zA-Z0-9\s.,!?'"-]+$/.test(req.body.name)) {
-        return res.status(400).json({ error: 'Name contains invalid characters' });
-    }
-    if (!/^[a-zA-Z0-9\s.,!?'"-]+$/.test(req.body.quote)) {
-        return res.status(400).json({ error: 'Quote contains invalid characters' });
-    }
-
-    next();
+    response.status(status).render('error.ejs', { title, message });
 };
 
-// Middleware
-app.set('view engine', 'ejs');
-app.use(express.static('public'));
+// Renders the home page. When the add form was turned away, the page also
+// says why, with what the visitor typed still in the boxes.
+const renderHome = async (response, status, form = {}) => {
+    // Most liked first, and newest first among equal likes. _id holds the
+    // creation time; quotes from 2022 have no createdAt.
+    const quotes = await db.collection(COLL_NAME).find().sort({ likes: -1, _id: -1 }).toArray();
+    const typed = (value) => (typeof value === 'string' ? value : '');
+    response.status(status).render('index.ejs', {
+        quotes,
+        formError: form.error ?? null,
+        formValues: { name: typed(form.values?.name), quote: typed(form.values?.quote) }
+    });
+};
+
+// Adding quotes has its own, tighter limit: anyone can post, and nothing is
+// moderated. Only quotes that were saved count toward it.
+const addQuoteLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    limit: 10,
+    skipFailedRequests: true,
+    handler: (request, response, next) => {
+        renderHome(response, 429, {
+            error: "You've added 10 quotes in the last hour. Please try again later.",
+            values: request.body
+        }).catch(next);
+    }
+});
 
 // Routes
-app.get('/', (request, response) => {
-    db.collection(COLL_NAME).find().sort({likes: -1}).toArray()
-    .then(data => {
-        response.render('index.ejs', { quotes: data });
-    })
-    .catch(error => {
-        console.error('Error fetching quotes:', error);
-        response.status(500).json({ error: 'Unable to fetch quotes' });
-    });
+app.get('/', async (request, response) => {
+    await renderHome(response, 200);
 });
 
 app.get('/privacy', (request, response) => {
     response.render('privacy.ejs');
 });
 
-app.post('/addQuotes', validateQuoteInput, (request, response) => {
-    db.collection(COLL_NAME).insertOne({
-        name: request.body.name,
-        quote: request.body.quote,
-        likes: 0,
-        createdAt: new Date()
-    })
-    .then(() => {
-        response.redirect('/');
-    })
-    .catch(error => {
-        console.error('Error adding quote:', error);
-        response.status(500).json({ error: 'Unable to add quote' });
-    });
+app.post('/addQuotes', addQuoteLimiter, async (request, response) => {
+    const { name, quote, error } = checkQuoteInput(request.body);
+    if (error) {
+        return renderHome(response, 400, { error, values: request.body });
+    }
+
+    await db.collection(COLL_NAME).insertOne({ name, quote, likes: 0, createdAt: new Date() });
+    response.redirect('/');
 });
 
-app.put('/editQuote', validateQuoteInput, (request, response) => {
-    const { id, name, quote } = request.body;
-    
-    if (!id) {
-        return response.status(400).json({ error: 'Quote ID is required' });
-    }
-
-    try {
-        const objectId = new ObjectId(id);
-        db.collection(COLL_NAME).findOneAndUpdate(
-            { _id: objectId },
-            { 
-                $set: { 
-                    name: name,
-                    quote: quote,
-                    updatedAt: new Date()
-                }
-            },
-            { returnDocument: 'after' }
-        )
-        // Since driver 6, this is the updated quote itself, or null if none matched
-        .then(updatedQuote => {
-            if (!updatedQuote) {
-                return response.status(404).json({ error: 'Quote not found' });
-            }
-            response.json(updatedQuote);
-        })
-        .catch(error => {
-            console.error('Error updating quote:', error);
-            response.status(500).json({ error: 'Unable to update quote' });
-        });
-    } catch (error) {
-        console.error('Invalid ObjectId:', error);
-        response.status(400).json({ error: 'Invalid quote ID' });
-    }
-});
-
-app.put('/addUpvote', (request, response) => {
-    const { id, likes } = request.body ?? {};
-    
-    if (!id || likes === undefined) {
-        return response.status(400).json({ error: 'Quote ID and likes count are required' });
-    }
-
-    try {
-        const objectId = new ObjectId(id);
-        db.collection(COLL_NAME).findOneAndUpdate(
-            { _id: objectId },
-            { 
-                $set: { 
-                    likes: likes + 1,
-                    updatedAt: new Date()
-                }
-            },
-            { returnDocument: 'after' }
-        )
-        .then(updatedQuote => {
-            if (!updatedQuote) {
-                return response.status(404).json({ error: 'Quote not found' });
-            }
-            response.json(updatedQuote);
-        })
-        .catch(error => {
-            console.error('Error updating likes:', error);
-            response.status(500).json({ error: 'Unable to update likes' });
-        });
-    } catch (error) {
-        console.error('Invalid ObjectId:', error);
-        response.status(400).json({ error: 'Invalid quote ID' });
-    }
-});
-
-app.delete('/deleteQuote', (request, response) => {
+app.put('/editQuote', async (request, response) => {
+    // Express 5 leaves req.body undefined when a request has no body
     const { id } = request.body ?? {};
-    
-    if (!id) {
-        return response.status(400).json({ error: 'Quote ID is required' });
+    if (!isQuoteId(id)) {
+        return response.status(400).json({ error: 'Invalid quote ID' });
+    }
+    const { name, quote, error } = checkQuoteInput(request.body);
+    if (error) {
+        return response.status(400).json({ error });
     }
 
-    try {
-        const objectId = new ObjectId(id);
-        db.collection(COLL_NAME).deleteOne({ _id: objectId })
-        .then(result => {
-            if (result.deletedCount === 0) {
-                return response.status(404).json({ error: 'Quote not found' });
-            }
-            response.json({ message: 'Quote deleted successfully' });
-        })
-        .catch(error => {
-            console.error('Error deleting quote:', error);
-            response.status(500).json({ error: 'Unable to delete quote' });
-        });
-    } catch (error) {
-        console.error('Invalid ObjectId:', error);
-        response.status(400).json({ error: 'Invalid quote ID' });
+    // Since driver 6, this is the updated quote itself, or null if none matched
+    const updatedQuote = await db.collection(COLL_NAME).findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $set: { name, quote, updatedAt: new Date() } },
+        { returnDocument: 'after' }
+    );
+    if (!updatedQuote) {
+        return response.status(404).json({ error: 'Quote not found' });
     }
+    response.json(updatedQuote);
+});
+
+app.put('/addUpvote', async (request, response) => {
+    const { id } = request.body ?? {};
+    if (!isQuoteId(id)) {
+        return response.status(400).json({ error: 'Invalid quote ID' });
+    }
+
+    // $inc adds one on the server, so a like can't set the count to anything else
+    const updatedQuote = await db.collection(COLL_NAME).findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { $inc: { likes: 1 }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after' }
+    );
+    if (!updatedQuote) {
+        return response.status(404).json({ error: 'Quote not found' });
+    }
+    response.json(updatedQuote);
+});
+
+app.delete('/deleteQuote', async (request, response) => {
+    const { id } = request.body ?? {};
+    if (!isQuoteId(id)) {
+        return response.status(400).json({ error: 'Invalid quote ID' });
+    }
+
+    const result = await db.collection(COLL_NAME).deleteOne({ _id: new ObjectId(id) });
+    if (result.deletedCount === 0) {
+        return response.status(404).json({ error: 'Quote not found' });
+    }
+    response.json({ message: 'Quote deleted successfully' });
+});
+
+// Pages that don't exist
+app.use((request, response) => {
+    sendError(request, response, 404, 'Page not found', "There's no page at this address.");
 });
 
 // Error handling middleware. Errors from the body parsers carry their own
 // status (400 bad JSON, 413 too large, 415 compressed); anything else is a 500.
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    if (res.headersSent) {
+        return next(err);
+    }
     const status = err.status >= 400 && err.status < 500 ? err.status : 500;
-    res.status(status).json({ error: status === 500 ? 'Something went wrong!' : 'Invalid request' });
+    if (status === 500) {
+        return sendError(req, res, 500, 'Something went wrong', 'Something went wrong! Please try again.');
+    }
+    sendError(req, res, status, 'Invalid request', "That request couldn't be read.");
 });
 
 // Connect to MongoDB, then start the server
