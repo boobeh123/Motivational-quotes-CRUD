@@ -9,6 +9,13 @@ const closeModal = document.querySelector('.close');
 // fetch() calls send JSON and ask for JSON back, so a failure arrives as { error }
 const JSON_HEADERS = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
 
+// A refused quote comes back as the reply to the form post, so the address
+// bar reads /addQuotes. Point it back at /: reloading /addQuotes (as saving an
+// edit does) would send the refused form again, or land on "Page not found".
+if (window.location.pathname === '/addQuotes') {
+    history.replaceState(null, '', '/');
+}
+
 // Event Listeners
 quotesList.addEventListener('click', handleQuoteAction);
 editForm.addEventListener('submit', handleEditSubmit);

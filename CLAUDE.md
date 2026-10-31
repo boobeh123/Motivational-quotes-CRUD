@@ -47,6 +47,7 @@ The whole server is `server.js`. In order:
 |---|---|---|
 | GET / | the browser | the page, quotes sorted `{ likes: -1, _id: -1 }` |
 | GET /privacy | the browser | the privacy page |
+| GET /addQuotes | a refresh or the back button | a 302 to `/` |
 | POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`) |
 | PUT /editQuote | main.js `fetch()` | the updated quote, or `{ error }` |
 | PUT /addUpvote | main.js `fetch()` | the updated quote, or `{ error }` |
@@ -65,6 +66,9 @@ The whole server is `server.js`. In order:
 
 **Errors:**
 - The add form is a plain form post, so its errors re-render index.ejs through `renderHome()`, with `formError` and the typed `formValues`. index.ejs needs both locals on every render.
+- That page is the reply to the POST, so its address is `/addQuotes`.
+  - main.js swaps the address for `/` on load (`history.replaceState`). Any reload, such as the one after saving an edit, then asks for `/` with a GET, instead of re-sending the refused form (Chromium) or asking for a page that doesn't exist (the 404 Bobby hit on Oct 30 2026).
+  - `GET /addQuotes` redirects to `/`, for refreshes with JavaScript off.
 - The `fetch()` calls in main.js send `Accept: application/json` and get `{ error }`, which main.js shows. The edit dialog shows it in `#editError` and stays open.
 - `sendError()` picks JSON or `views/error.ejs` by the Accept header. It serves the 404 handler and the error handler.
 - The error handler keeps the parsers' 4xx statuses: 400 for bad JSON, 413 over 10kb, 415 for a compressed body. It never shows `err.message`.
