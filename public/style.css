@@ -198,6 +198,7 @@ body {
 }
 
 input[type="text"],
+input[type="search"],
 textarea {
     padding: 1rem 1.2rem;
     border: 2px solid #899396;
@@ -245,6 +246,7 @@ textarea {
 }
 
 input[type="text"]:focus,
+input[type="search"]:focus,
 textarea:focus {
     outline: none;
     border-color: #2471a3;
@@ -373,6 +375,69 @@ button:active {
     font-weight: 500;
 }
 
+/* Above the list: the search box, and the sort links beside it */
+.quote-tools {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem 2rem;
+}
+
+.quote-search {
+    display: flex;
+    flex: 1;
+    gap: 0.5rem;
+    min-width: 280px;
+}
+
+.quote-search input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+    /* Safari draws search boxes rounded and grey unless told otherwise */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.quote-search button {
+    padding: 0.75rem 1.25rem;
+}
+
+.quote-sort {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.quote-sort a {
+    color: #2471a3;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
+}
+
+.quote-sort a:hover {
+    border-bottom-color: #2471a3;
+}
+
+.quote-sort a[aria-current="true"] {
+    color: #2c3e50;
+    font-weight: 700;
+    border-bottom-color: #2471a3;
+}
+
+.search-summary {
+    margin-top: 1.5rem;
+    color: #2c3e50;
+}
+
+.search-summary a {
+    margin-left: 0.5rem;
+    color: #2471a3;
+    font-weight: 600;
+}
+
 /* Modal. The edit dialog opens with showModal(), so the browser centers it,
    dims the page behind it, keeps focus inside it and closes it on Escape.
    No display rule here: the browser shows and hides the dialog itself. */
@@ -482,6 +547,18 @@ button:active {
 
     .quotes-list {
         grid-template-columns: 1fr;
+    }
+
+    /* One line, so the search and sort stretch to the card's width: a
+       wrapping column sizes its line to the widest item instead */
+    .quote-tools {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
+    }
+
+    .quote-search {
+        min-width: 0;
     }
 
     .modal {

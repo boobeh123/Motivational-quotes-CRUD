@@ -111,6 +111,27 @@
 
             <section class="quotes" aria-labelledby="quotes-title">
                 <h2 id="quotes-title">Quotes Collection</h2>
+                <div class="quote-tools">
+                    <%# A plain GET form: the search and sort live in the address, so a result can be shared %>
+                    <form class="quote-search" action="/" method="GET" role="search" aria-label="Search quotes">
+                        <% if (list.sort === 'new') { %>
+                            <input type="hidden" name="sort" value="new">
+                        <% } %>
+                        <label for="quote-search" class="visually-hidden">Search quotes or authors</label>
+                        <input type="search" id="quote-search" name="q" value="<%= list.q %>" maxlength="<%= limits.search %>" placeholder="Search quotes or authors">
+                        <button type="submit">Search</button>
+                    </form>
+                    <nav class="quote-sort" aria-label="Sort quotes">
+                        <a href="<%= list.topUrl %>" aria-current="<%= list.sort === 'top' %>">Most liked</a>
+                        <a href="<%= list.newUrl %>" aria-current="<%= list.sort === 'new' %>">Newest</a>
+                    </nav>
+                </div>
+                <% if (list.q) { %>
+                    <p class="search-summary">
+                        <%= quotes.length === 0 ? 'No quotes match' : quotes.length === 1 ? '1 quote matches' : `${quotes.length} quotes match` %> “<%= list.q %>”.
+                        <a href="<%= list.clearUrl %>">Show all quotes</a>
+                    </p>
+                <% } %>
                 <ul class="quotes-list" role="list" aria-label="Collection of motivational quotes">
                     <% for(let i = 0; i < quotes.length; i++) {%>
                         <li class="quote-card" data-id="<%= quotes[i]._id.toString() %>" data-name="<%= quotes[i].name %>" data-quote="<%= quotes[i].quote %>" role="listitem">
