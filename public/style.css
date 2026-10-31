@@ -176,6 +176,21 @@ body {
     font-size: 1.1rem;
 }
 
+/* Why the add form or the edit dialog turned a quote away. No display rule,
+   so the dialog's copy can use the hidden attribute. */
+.form-error,
+.add-quote .form-error {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid #c0392b;
+    border-radius: 4px;
+    background: #fdecea;
+    color: #a93226;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
 .form-group {
     display: flex;
     gap: 1rem;
@@ -625,5 +640,57 @@ button:active {
 
     .policy-content h3 {
         font-size: 1.3rem;
+    }
+}
+
+/* Error Page */
+.error-page {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin: 2rem auto;
+    max-width: 800px;
+}
+
+.error-page h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.error-page p {
+    margin-bottom: 1.5rem;
+}
+
+.error-page a {
+    color: #2471a3;
+    font-weight: 600;
+}
+
+/* The page is short, so the footer sits at the bottom of the screen, and it
+   only has the copyright line */
+.error-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.error-body main {
+    flex: 1;
+}
+
+.error-footer {
+    padding-top: 0;
+}
+
+.error-footer .footer-bottom {
+    margin-top: 0;
+    border-top: none;
+}
+
+@media (max-width: 768px) {
+    .error-page {
+        padding: 1.5rem;
+        margin: 1rem;
     }
 }

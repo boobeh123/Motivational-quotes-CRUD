@@ -4,7 +4,7 @@
   "description": "Building a CRUD app using Node, Express, & MongoDB",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
