@@ -45,7 +45,7 @@ The whole server is `server.js`. In order:
 
 | Route | Called by | Answers |
 |---|---|---|
-| GET / | the browser | the page, quotes sorted `{ likes: -1, _id: -1 }` |
+| GET / | the browser | the page. `?sort=new` lists newest first, otherwise most liked; `?q=` searches |
 | GET /privacy | the browser | the privacy page |
 | GET /addQuotes | a refresh or the back button | a 302 to `/` |
 | POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`). A post from another site gets a 403. |
@@ -53,6 +53,16 @@ The whole server is `server.js`. In order:
 | PUT /addUpvote | main.js `fetch()` | `{ likes, liked: true }`; liking twice changes nothing |
 | PUT /removeUpvote | main.js `fetch()` | `{ likes, liked: false }`: takes back this browser's like |
 | DELETE /deleteQuote | main.js `fetch()` | `{ message }`, or `{ error }` (403 or 404, as for editing) |
+
+**Sort and search** live in `middleware/quoteList.js`, as pure functions tested in `test/quoteList.test.js`.
+- **Reading the address:** `readListOptions(req.query)` turns `?sort` and `?q` into `{ sort: 'top' | 'new', q }`.
+  - Anything else falls back to the defaults: a list from `?q=a&q=b`, or an unknown sort.
+  - The search is tidied like form text, and cut to `MAX_SEARCH_LENGTH` (100).
+- **The query:** `listQuery()` builds the filter and sort.
+  - "top" is `{ likes: -1, _id: -1 }`, and "new" is `{ _id: -1 }`.
+  - A search is an `$expr` with `$indexOfCP` on `$toLower` of the quote and the author, with the term in `$literal`. Nothing typed becomes a regex, and a search like `$likes` stays text.
+  - MongoDB's `$toLower` only lowercases A–Z, so an uppercase accented letter in a quote won't match a lowercase search.
+- **Links:** `listUrl()` builds them, leaving out the defaults. renderHome passes `list` (sort, q, topUrl, newUrl, clearUrl), so sorting keeps the search and clearing the search keeps the sort.
 
 **Validation** is in `middleware/validators.js`, as pure functions tested in `test/validators.test.js`.
 - `checkQuoteInput(body)` returns `{ name, quote }` ready to save, or `{ error }` for the visitor.
@@ -129,6 +139,10 @@ The whole server is `server.js`. In order:
   - The line isn't a live region, so screen readers read the count when they reach the box, not after every key.
   - The server collapses line breaks into spaces, like any other whitespace.
 - **Messages:** the bottom-right message (`#message`) sits inside a `role="status"` region that is always on the page, so screen readers announce it. `showMessage()` empties it when it hides, so a repeated message is announced again.
+- **Search and sort:** both sit above the list.
+  - The search is a plain GET form (`role="search"`, a hidden `sort` when it's "new"). The two sort links mark the current one with `aria-current="true"`.
+  - A search adds "N quotes match “…”" (or "No quotes match") with a "Show all quotes" link.
+  - Everything is in the address, so results can be shared, and the reload after an edit keeps them.
 - **The like button** is a toggle.
   - It starts as an outline heart with `aria-pressed="false"`. After a like it's a solid heart, `"true"`, with the title "Remove your like".
   - `handleLike()` calls `/removeUpvote` when it's pressed and `/addUpvote` otherwise, then `showLiked()` updates it.
@@ -181,10 +195,10 @@ Done:
 - PR #3: page, accessibility and CSP fixes.
 - PR #4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
 - PR #5: own quotes (above), with the privacy wording, and a fix for tap-to-close on iPhones.
-- PR 6: one like per browser, with a privacy line.
+- PR #6: one like per browser, with privacy lines.
+- PR 7: sort and search.
 
 Next:
-7. Sort and search.
 8. "Inspire me" from the ZenQuotes API: display-only, with the credit link their free tier requires. Their terms forbid republishing, so it can't be saved to the collection.
 9. A README refresh.
 

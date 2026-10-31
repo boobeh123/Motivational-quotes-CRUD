@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { MAX_NAME_LENGTH, MAX_QUOTE_LENGTH, checkQuoteInput, isQuoteId } = require('./middleware/validators');
 const { loadVisitor, giveVisitorKey, isCrossSite } = require('./middleware/visitorKey');
+const { MAX_SEARCH_LENGTH, readListOptions, listQuery, listUrl } = require('./middleware/quoteList');
 const PORT = process.env.PORT || 3000;
 
 // Railway sends each request through one proxy. Trusting that one hop makes
@@ -34,7 +35,7 @@ app.use(helmet({
 // CSS, JS and icons each page loads don't count toward it.
 app.set('view engine', 'ejs');
 // The forms' maxlength attributes use the same limits the server checks
-app.locals.limits = { name: MAX_NAME_LENGTH, quote: MAX_QUOTE_LENGTH };
+app.locals.limits = { name: MAX_NAME_LENGTH, quote: MAX_QUOTE_LENGTH, search: MAX_SEARCH_LENGTH };
 app.use(express.static('public'));
 
 // Rate limiting
@@ -79,9 +80,12 @@ const sendError = (request, response, status, title, message) => {
 // Renders the home page. When the add form was turned away, the page also
 // says why, with what the visitor typed still in the boxes.
 const renderHome = async (request, response, status, form = {}) => {
-    // Most liked first, and newest first among equal likes. _id holds the
-    // creation time; quotes from 2022 have no createdAt.
-    const found = await db.collection(COLL_NAME).find().sort({ likes: -1, _id: -1 }).toArray();
+    // The sort and search come from the address: most liked first (newest
+    // first among equal likes) unless it says ?sort=new, and every quote
+    // unless it has ?q=
+    const options = readListOptions(request.query);
+    const { filter, sort } = listQuery(options);
+    const found = await db.collection(COLL_NAME).find(filter).sort(sort).toArray();
     // Mark the quotes this browser added or liked, and keep every hash off the page
     const quotes = found.map(({ ownerHash, likedBy, ...quote }) => ({
         ...quote,
@@ -92,7 +96,15 @@ const renderHome = async (request, response, status, form = {}) => {
     response.status(status).render('index.ejs', {
         quotes,
         formError: form.error ?? null,
-        formValues: { name: typed(form.values?.name), quote: typed(form.values?.quote) }
+        formValues: { name: typed(form.values?.name), quote: typed(form.values?.quote) },
+        // The links keep the other setting: sorting keeps the search, and
+        // clearing the search keeps the sort
+        list: {
+            ...options,
+            topUrl: listUrl({ ...options, sort: 'top' }),
+            newUrl: listUrl({ ...options, sort: 'new' }),
+            clearUrl: listUrl({ ...options, q: '' })
+        }
     });
 };
 

@@ -53,4 +53,4 @@ const checkQuoteInput = (body) => {
 // isn't enough on its own: it also accepts any 12-character string.
 const isQuoteId = (id) => typeof id === 'string' && /^[0-9a-f]{24}$/i.test(id);
 
-module.exports = { MAX_NAME_LENGTH, MAX_QUOTE_LENGTH, checkQuoteInput, isQuoteId };
+module.exports = { MAX_NAME_LENGTH, MAX_QUOTE_LENGTH, tidy, checkQuoteInput, isQuoteId };
