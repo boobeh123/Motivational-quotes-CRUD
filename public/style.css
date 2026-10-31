@@ -368,28 +368,30 @@ button:active {
     align-self: flex-end;
 }
 
-/* Without the background and padding resets, the × inherits the blue
-   button style, which hid it */
+/* A light circle with a dark ×, 44px across so it's easy to see and to tap.
+   It sets its own background and padding, or it would inherit the blue
+   button style, which once hid the × completely. */
 .close {
-    background: none;
+    background: #eef1f3;
     padding: 0;
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    font-size: 1.5rem;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    line-height: 1;
     cursor: pointer;
-    color: #5f6b6d;
+    color: #2c3e50;
     transition: all 0.3s ease;
-    width: 30px;
-    height: 30px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10%;
+    border-radius: 50%;
 }
 
 .close:hover {
-    background: #f0f0f0;
+    background: #e0e4e7;
     color: #c0392b;
     box-shadow: none;
 }

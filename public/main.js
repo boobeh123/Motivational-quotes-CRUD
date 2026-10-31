@@ -20,9 +20,15 @@ if (window.location.pathname === '/addQuotes') {
 quotesList.addEventListener('click', handleQuoteAction);
 editForm.addEventListener('submit', handleEditSubmit);
 closeModal.addEventListener('click', () => editModal.close());
-// A click on the dimmed area around the dialog lands on the dialog itself
+// A click on the dimmed area around the dialog lands on the dialog itself.
+// Close only when the press started there too: a press that starts in a field
+// (selecting text, say) and ends outside also counts as a click on the dialog.
+let pressStartedOutside = false;
+editModal.addEventListener('pointerdown', (e) => {
+    pressStartedOutside = e.target === editModal;
+});
 editModal.addEventListener('click', (e) => {
-    if (e.target === editModal) {
+    if (e.target === editModal && pressStartedOutside) {
         editModal.close();
     }
 });

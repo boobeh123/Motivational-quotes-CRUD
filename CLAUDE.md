@@ -96,7 +96,9 @@ The whole server is `server.js`. In order:
   - Its listeners sit at the top, and its function declarations are hoisted.
   - It selects with `querySelector`, never `getElementById` (Bobby's standard).
 - **The edit dialog** is a `<dialog>` opened with `showModal()`.
-  - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button. A click on `::backdrop` lands on the dialog element, which main.js closes.
+  - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button.
+  - A click on `::backdrop` lands on the dialog element. main.js closes the dialog only if the press also started there (`pointerdown`), because a text selection dragged out of a field also ends as a click on the dialog.
+  - The × is a 44px light circle with a dark × (9.7:1). Bobby found the plain gray × too faint on his phone.
   - `.modal` has no `display` rule, because the browser shows and hides the dialog.
   - It reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
 - **Messages:** the bottom-right message (`#message`) sits inside a `role="status"` region that is always on the page, so screen readers announce it. `showMessage()` empties it when it hides, so a repeated message is announced again.
