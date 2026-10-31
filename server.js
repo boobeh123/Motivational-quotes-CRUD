@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const { MAX_NAME_LENGTH, MAX_QUOTE_LENGTH, checkQuoteInput, isQuoteId } = require('./middleware/validators');
 const { loadVisitor, giveVisitorKey, isCrossSite } = require('./middleware/visitorKey');
 const { MAX_SEARCH_LENGTH, readListOptions, listQuery, listUrl } = require('./middleware/quoteList');
+const { createInspiration } = require('./middleware/inspire');
 const PORT = process.env.PORT || 3000;
 
 // Railway sends each request through one proxy. Trusting that one hop makes
@@ -67,6 +68,9 @@ const DB_NAME = 'motivational-quotes';
 const COLL_NAME = 'quotes';
 
 let db;
+
+// "Inspire me": random quotes from ZenQuotes, cached an hour (middleware/inspire.js)
+const inspire = createInspiration();
 
 // Sends an error page to browsers, and JSON to the page's fetch() calls,
 // which ask for it with their Accept header
@@ -145,6 +149,18 @@ app.get('/', async (request, response) => {
 
 app.get('/privacy', (request, response) => {
     response.render('privacy.ejs');
+});
+
+// A random quote for the "Inspire me" button, from the cached ZenQuotes batch
+app.get('/api/inspire', async (request, response) => {
+    // Each answer can differ, so browsers shouldn't keep one
+    response.set('Cache-Control', 'no-store');
+    try {
+        response.json(await inspire());
+    } catch (error) {
+        console.error('ZenQuotes is unavailable:', error.message);
+        response.status(503).json({ error: "Couldn't fetch a quote right now. Please try again in a minute." });
+    }
 });
 
 // The add form posts to /addQuotes. A browser can still ask for it as a page,

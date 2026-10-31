@@ -47,12 +47,24 @@ The whole server is `server.js`. In order:
 |---|---|---|
 | GET / | the browser | the page. `?sort=new` lists newest first, otherwise most liked; `?q=` searches |
 | GET /privacy | the browser | the privacy page |
+| GET /api/inspire | main.js `fetch()` | `{ quote, author }` from ZenQuotes, or a 503 `{ error }` (`Cache-Control: no-store`) |
 | GET /addQuotes | a refresh or the back button | a 302 to `/` |
 | POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`). A post from another site gets a 403. |
 | PUT /editQuote | main.js `fetch()` | the updated quote, or `{ error }`: a 403 for another browser's quote, a 404 for none |
 | PUT /addUpvote | main.js `fetch()` | `{ likes, liked: true }`; liking twice changes nothing |
 | PUT /removeUpvote | main.js `fetch()` | `{ likes, liked: false }`: takes back this browser's like |
 | DELETE /deleteQuote | main.js `fetch()` | `{ message }`, or `{ error }` (403 or 404, as for editing) |
+
+**"Inspire me"** shows a random quote from the ZenQuotes API. The code is `middleware/inspire.js`, tested in `test/inspire.test.js` with a fake fetch and clock.
+- **The server fetches, not the browser.** It requests a batch of 50 (`/api/quotes`) at most once an hour, and serves random quotes from it, as their free tier (5 requests per 30 seconds) asks.
+  - Only one fetch runs at a time, with a 5-second timeout.
+  - After a failure, it waits a minute before trying again, and keeps serving the last batch if it has one. With no batch at all, the route answers 503.
+- **The browser only talks to WisdomWell,** so the CSP doesn't change and visitors' details never reach ZenQuotes.
+- **Only `q` (the quote) and `a` (the author) are used, as text.** Their `h` field is ready-made HTML and is ignored. Over their limit, ZenQuotes sends a "quote" by zenquotes.io saying "Too many requests"; `parseBatch()` drops it.
+- **Display only.** Their terms forbid republishing, so their quotes are shown with the credit their free tier requires and never saved to the collection.
+  - The credit reads "Inspirational quotes provided by ZenQuotes API", linking to https://zenquotes.io/.
+  - Keep it next to any quote of theirs.
+- **`ZENQUOTES_URL`** is optional and defaults to their API. The smoke kit points it at a local stub.
 
 **Sort and search** live in `middleware/quoteList.js`, as pure functions tested in `test/quoteList.test.js`.
 - **Reading the address:** `readListOptions(req.query)` turns `?sort` and `?q` into `{ sort: 'top' | 'new', q }`.
@@ -143,6 +155,9 @@ The whole server is `server.js`. In order:
   - The search is a plain GET form (`role="search"`, a hidden `sort` when it's "new"). The two sort links mark the current one with `aria-current="true"`.
   - A search adds "N quotes match “…”" (or "No quotes match") with a "Show all quotes" link.
   - Everything is in the address, so results can be shared, and the reload after an edit keeps them.
+- **"Inspire me"** sits under the add form: a prompt, an outlined button, and a `<figure class="inspire-quote" hidden>` holding the quote, the author and the credit.
+  - The figure sits inside an `aria-live` region that stays on the page.
+  - `handleInspire()` fills it with `textContent`, never HTML, and uses a `data-busy` flag like the like button's.
 - **The like button** is a toggle.
   - It starts as an outline heart with `aria-pressed="false"`. After a like it's a solid heart, `"true"`, with the title "Remove your like".
   - `handleLike()` calls `/removeUpvote` when it's pressed and `/addUpvote` otherwise, then `showLiked()` updates it.
@@ -176,7 +191,7 @@ The whole server is `server.js`. In order:
 
 `views/privacy.ejs` is Bobby's own text, not generated.
 - Don't change its wording: flag problems and draft new wording for him to approve.
-- Section 4 describes the one cookie, `ww_key`, and says there are no tracking cookies. The policy also lists its third-party services. A change that adds a cookie, a new use of data or a new service needs a policy update in the same PR, with Bobby's approval.
+- Section 4 describes the one cookie, `ww_key`, and says there are no tracking cookies. Section 6 names ZenQuotes. The policy also lists its third-party services. A change that adds a cookie, a new use of data or a new service needs a policy update in the same PR, with Bobby's approval.
 
 ## Checking changes
 
@@ -196,10 +211,10 @@ Done:
 - PR #4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
 - PR #5: own quotes (above), with the privacy wording, and a fix for tap-to-close on iPhones.
 - PR #6: one like per browser, with privacy lines.
-- PR 7: sort and search.
+- PR #7: sort and search.
+- PR 8: "Inspire me" from ZenQuotes, with a privacy line.
 
 Next:
-8. "Inspire me" from the ZenQuotes API: display-only, with the credit link their free tier requires. Their terms forbid republishing, so it can't be saved to the collection.
 9. A README refresh.
 
-PR 8 also changes what the privacy policy has to say. The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.
+The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.

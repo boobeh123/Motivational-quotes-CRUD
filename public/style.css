@@ -238,6 +238,65 @@ textarea {
     font-size: 0.9rem;
 }
 
+/* "Inspire me": a prompt and a quieter button under the add form, then the
+   quote ZenQuotes sends. No display rule on .inspire-quote: it uses hidden. */
+.inspire {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.add-quote .inspire-prompt {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.inspire-btn {
+    padding: 0.6rem 1.25rem;
+    background: white;
+    color: #2471a3;
+    border: 2px solid #2471a3;
+}
+
+.inspire-btn:hover {
+    background: #eaf2f8;
+    box-shadow: none;
+}
+
+.inspire-quote {
+    margin: 1.25rem 0 0;
+    padding: 1.25rem 1.5rem;
+    background: #f8f9fa;
+    border-left: 4px solid #2471a3;
+    border-radius: 8px;
+}
+
+.inspire-text {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #2c3e50;
+}
+
+.inspire-author {
+    margin-top: 0.5rem;
+    color: #5f6b6d;
+}
+
+.add-quote .inspire-credit {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: #5f6b6d;
+}
+
+.inspire-credit a {
+    color: #2471a3;
+}
+
 /* Under the add form: who can edit or delete a quote */
 .add-quote .form-note {
     margin: 1rem 0 0;
