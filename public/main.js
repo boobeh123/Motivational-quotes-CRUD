@@ -23,14 +23,17 @@ editForm.addEventListener('submit', handleEditSubmit);
 quoteBoxes.forEach((box) => box.addEventListener('input', () => updateCharCount(box)));
 closeModal.addEventListener('click', () => editModal.close());
 // A click on the dimmed area around the dialog lands on the dialog itself.
-// Close only when the press started there too: a press that starts in a field
-// (selecting text, say) and ends outside also counts as a click on the dialog.
-let pressStartedOutside = false;
-editModal.addEventListener('pointerdown', (e) => {
-    pressStartedOutside = e.target === editModal;
-});
+// Close only when the press started outside the dialog's box too: a press that
+// starts in a field (selecting text, say) and ends outside also counts as a
+// click on the dialog. This compares positions, not elements: iPhone Safari
+// says a touch on the dimmed area started on the page behind it.
+let pressStart = null;
+document.addEventListener('pointerdown', (e) => {
+    pressStart = { x: e.clientX, y: e.clientY };
+}, true);
 editModal.addEventListener('click', (e) => {
-    if (e.target === editModal && pressStartedOutside) {
+    if (e.target === editModal && pressStart &&
+        isOutsideDialog(pressStart.x, pressStart.y) && isOutsideDialog(e.clientX, e.clientY)) {
         editModal.close();
     }
 });
@@ -86,6 +89,12 @@ function handleEdit(quoteCard, quoteId) {
     // showModal() moves focus into the dialog (to the autofocus field), closes
     // it on Escape, and returns focus to the Edit button afterwards
     editModal.showModal();
+}
+
+// True when a point on the screen is outside the open dialog's box
+function isOutsideDialog(x, y) {
+    const box = editModal.getBoundingClientRect();
+    return x < box.left || x > box.right || y < box.top || y > box.bottom;
 }
 
 // Updates the "N of 500 characters" line a quote box points to with aria-describedby.

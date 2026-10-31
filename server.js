@@ -6,6 +6,7 @@ const { ObjectId } = require('mongodb');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const { MAX_NAME_LENGTH, MAX_QUOTE_LENGTH, checkQuoteInput, isQuoteId } = require('./middleware/validators');
+const { loadVisitor, giveVisitorKey, isCrossSite } = require('./middleware/visitorKey');
 const PORT = process.env.PORT || 3000;
 
 // Railway sends each request through one proxy. Trusting that one hop makes
@@ -51,6 +52,9 @@ app.use(express.json({ limit: '10kb', inflate: false }));
 // extended: false keeps a field like name[$ne] a plain key instead of an object
 app.use(express.urlencoded({ extended: false, limit: '10kb', inflate: false }));
 
+// req.visitorHash: which browser this is, from its ww_key cookie (null without one)
+app.use(loadVisitor);
+
 // Validate required environment variables
 if (!process.env.DB_STRING) {
     console.error('MongoDB connection string is missing. Please check your .env file.');
@@ -74,10 +78,15 @@ const sendError = (request, response, status, title, message) => {
 
 // Renders the home page. When the add form was turned away, the page also
 // says why, with what the visitor typed still in the boxes.
-const renderHome = async (response, status, form = {}) => {
+const renderHome = async (request, response, status, form = {}) => {
     // Most liked first, and newest first among equal likes. _id holds the
     // creation time; quotes from 2022 have no createdAt.
-    const quotes = await db.collection(COLL_NAME).find().sort({ likes: -1, _id: -1 }).toArray();
+    const found = await db.collection(COLL_NAME).find().sort({ likes: -1, _id: -1 }).toArray();
+    // Mark the quotes this browser added, and keep every owner's hash off the page
+    const quotes = found.map(({ ownerHash, ...quote }) => ({
+        ...quote,
+        isOwner: Boolean(ownerHash) && ownerHash === request.visitorHash
+    }));
     const typed = (value) => (typeof value === 'string' ? value : '');
     response.status(status).render('index.ejs', {
         quotes,
@@ -93,16 +102,26 @@ const addQuoteLimiter = rateLimit({
     limit: 10,
     skipFailedRequests: true,
     handler: (request, response, next) => {
-        renderHome(response, 429, {
+        renderHome(request, response, 429, {
             error: "You've added 10 quotes in the last hour. Please try again later.",
             values: request.body
         }).catch(next);
     }
 });
 
+// Answers an edit or delete that matched nothing: 403 when the quote exists
+// but this browser didn't add it, 404 when there's no such quote
+const refuseChange = async (response, id, action) => {
+    const exists = await db.collection(COLL_NAME).countDocuments({ _id: new ObjectId(id) }, { limit: 1 });
+    if (exists) {
+        return response.status(403).json({ error: `You can only ${action} quotes added from this browser` });
+    }
+    response.status(404).json({ error: 'Quote not found' });
+};
+
 // Routes
 app.get('/', async (request, response) => {
-    await renderHome(response, 200);
+    await renderHome(request, response, 200);
 });
 
 app.get('/privacy', (request, response) => {
@@ -116,12 +135,17 @@ app.get('/addQuotes', (request, response) => {
 });
 
 app.post('/addQuotes', addQuoteLimiter, async (request, response) => {
+    if (isCrossSite(request)) {
+        return sendError(request, response, 403, 'Not allowed', "Quotes can only be added from WisdomWell's own page.");
+    }
     const { name, quote, error } = checkQuoteInput(request.body);
     if (error) {
-        return renderHome(response, 400, { error, values: request.body });
+        return renderHome(request, response, 400, { error, values: request.body });
     }
 
-    await db.collection(COLL_NAME).insertOne({ name, quote, likes: 0, createdAt: new Date() });
+    // The browser's key marks the quote as its own: only it can edit or delete it
+    const ownerHash = giveVisitorKey(request, response);
+    await db.collection(COLL_NAME).insertOne({ name, quote, likes: 0, ownerHash, createdAt: new Date() });
     response.redirect('/');
 });
 
@@ -135,15 +159,22 @@ app.put('/editQuote', async (request, response) => {
     if (error) {
         return response.status(400).json({ error });
     }
+    // Only the browser that added a quote can change it. Without a key there's
+    // nothing to match on: ownerHash: null would match every older quote,
+    // since those have no owner.
+    if (!request.visitorHash) {
+        return refuseChange(response, id, 'edit');
+    }
 
-    // Since driver 6, this is the updated quote itself, or null if none matched
+    // Since driver 6, this is the updated quote itself, or null if none matched.
+    // The projection keeps the owner's hash out of the reply.
     const updatedQuote = await db.collection(COLL_NAME).findOneAndUpdate(
-        { _id: new ObjectId(id) },
+        { _id: new ObjectId(id), ownerHash: request.visitorHash },
         { $set: { name, quote, updatedAt: new Date() } },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', projection: { ownerHash: 0 } }
     );
     if (!updatedQuote) {
-        return response.status(404).json({ error: 'Quote not found' });
+        return refuseChange(response, id, 'edit');
     }
     response.json(updatedQuote);
 });
@@ -158,7 +189,7 @@ app.put('/addUpvote', async (request, response) => {
     const updatedQuote = await db.collection(COLL_NAME).findOneAndUpdate(
         { _id: new ObjectId(id) },
         { $inc: { likes: 1 }, $set: { updatedAt: new Date() } },
-        { returnDocument: 'after' }
+        { returnDocument: 'after', projection: { ownerHash: 0 } }
     );
     if (!updatedQuote) {
         return response.status(404).json({ error: 'Quote not found' });
@@ -172,9 +203,14 @@ app.delete('/deleteQuote', async (request, response) => {
         return response.status(400).json({ error: 'Invalid quote ID' });
     }
 
-    const result = await db.collection(COLL_NAME).deleteOne({ _id: new ObjectId(id) });
+    // As with editing: only the browser that added it, and never a missing key
+    if (!request.visitorHash) {
+        return refuseChange(response, id, 'delete');
+    }
+
+    const result = await db.collection(COLL_NAME).deleteOne({ _id: new ObjectId(id), ownerHash: request.visitorHash });
     if (result.deletedCount === 0) {
-        return response.status(404).json({ error: 'Quote not found' });
+        return refuseChange(response, id, 'delete');
     }
     response.json({ message: 'Quote deleted successfully' });
 });

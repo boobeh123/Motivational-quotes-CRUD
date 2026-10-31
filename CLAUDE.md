@@ -48,10 +48,10 @@ The whole server is `server.js`. In order:
 | GET / | the browser | the page, quotes sorted `{ likes: -1, _id: -1 }` |
 | GET /privacy | the browser | the privacy page |
 | GET /addQuotes | a refresh or the back button | a 302 to `/` |
-| POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`) |
-| PUT /editQuote | main.js `fetch()` | the updated quote, or `{ error }` |
+| POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`). A post from another site gets a 403. |
+| PUT /editQuote | main.js `fetch()` | the updated quote, or `{ error }`: a 403 for another browser's quote, a 404 for none |
 | PUT /addUpvote | main.js `fetch()` | the updated quote, or `{ error }` |
-| DELETE /deleteQuote | main.js `fetch()` | `{ message }`, or `{ error }` |
+| DELETE /deleteQuote | main.js `fetch()` | `{ message }`, or `{ error }` (403 or 404, as for editing) |
 
 **Validation** is in `middleware/validators.js`, as pure functions tested in `test/validators.test.js`.
 - `checkQuoteInput(body)` returns `{ name, quote }` ready to save, or `{ error }` for the visitor.
@@ -77,7 +77,9 @@ The whole server is `server.js`. In order:
 
 **The database:**
 - Database `motivational-quotes`, collection `quotes`.
-- Fields: `name`, `quote`, `likes` (a number), `createdAt` and `updatedAt`. Quotes from 2022 have no `createdAt`, which is why ties sort on `_id`.
+- Fields: `name`, `quote`, `likes` (a number), `ownerHash`, `createdAt` and `updatedAt`.
+  - Quotes from 2022 have no `createdAt`, which is why ties sort on `_id`.
+  - Quotes added before Oct 2026's PR 5 have no `ownerHash`.
 - Likes only change through `$inc`; the page sends just the quote's id.
 - In driver 7, `findOneAndUpdate` returns the document itself, or null, not `{ value }`.
 
@@ -85,6 +87,19 @@ The whole server is `server.js`. In order:
 - 10 saved quotes an hour per visitor.
 - `skipFailedRequests`, so refused quotes don't count.
 - Its handler re-renders the page with the reason.
+
+**Own quotes:** only the browser that added a quote can edit or delete it. There are no accounts. The code is in `middleware/visitorKey.js`, with tests in `test/visitorKey.test.js`.
+- **The key:** a browser's first saved quote calls `giveVisitorKey()`, which sets the `ww_key` cookie: 32 random bytes as base64url, httpOnly, `sameSite: 'lax'`, `secure` from `req.secure`, one year.
+- **Storage:** the quote stores `ownerHash`, the SHA-256 of that key. `loadVisitor` (before the routes) sets `req.visitorHash` from a well-formed cookie, or to null.
+- **Hashes never leave the server:**
+  - `renderHome()` turns `ownerHash` into an `isOwner` flag, so index.ejs shows Edit and Delete only on the visitor's own quotes.
+  - Every `findOneAndUpdate` reply drops the field with `projection: { ownerHash: 0 }`.
+- **Edits and deletes** filter on `{ _id, ownerHash: req.visitorHash }`. `refuseChange()` answers 403 when the quote exists but isn't theirs, and 404 when it doesn't exist.
+- **Never query without a key.** If `req.visitorHash` is null, refuse before touching the database: a filter on `ownerHash: null` matches every quote that has no `ownerHash`.
+- **Older quotes have no owner,** so nobody can edit or delete them on the site. Bobby manages them in Atlas.
+- **Posts from other sites get a 403 (`isCrossSite()`).** The browser doesn't send `ww_key` with them, so the reply would hand out a new key and replace the visitor's own.
+  - It trusts Sec-Fetch-Site first.
+  - Origin is only the fallback for old browsers. helmet's `Referrer-Policy: no-referrer` makes browsers send `Origin: null` even for this site's own form, so "null" isn't treated as another site. (An Origin-only check refused every real add; the browser check caught it.)
 
 ## The page
 
@@ -97,7 +112,8 @@ The whole server is `server.js`. In order:
   - It selects with `querySelector`, never `getElementById` (Bobby's standard).
 - **The edit dialog** is a `<dialog>` opened with `showModal()`.
   - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button.
-  - A click on `::backdrop` lands on the dialog element. main.js closes the dialog only if the press also started there (`pointerdown`), because a text selection dragged out of a field also ends as a click on the dialog.
+  - A click on `::backdrop` lands on the dialog element. main.js closes the dialog only when the press started outside the dialog's box too, because a text selection dragged out of a field also ends as a click on the dialog.
+    - It compares positions (a document-level `pointerdown` against `isOutsideDialog()`), not targets. iPhone Safari reports a touch on the backdrop as starting on the page behind it, so a target check broke tap-to-close there (Bobby's PR #4 check).
   - The × is a 44px light circle with a dark × (9.7:1). Bobby found the plain gray × too faint on his phone.
   - `.modal` has no `display` rule, because the browser shows and hides the dialog.
   - It reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
@@ -135,7 +151,7 @@ The whole server is `server.js`. In order:
 
 `views/privacy.ejs` is Bobby's own text, not generated.
 - Don't change its wording: flag problems and draft new wording for him to approve.
-- It says the site collects no cookies or tracking data, and it lists its third-party services. A change that adds a cookie or a new service needs a policy update in the same PR.
+- Section 4 describes the one cookie, `ww_key`, and says there are no tracking cookies. The policy also lists its third-party services. A change that adds a cookie, a new use of data or a new service needs a policy update in the same PR, with Bobby's approval.
 
 ## Checking changes
 
@@ -152,13 +168,13 @@ An approved plan (Oct 30 2026), one PR at a time.
 Done:
 - PR #2: adding, editing, liking and deleting fixes. This file arrived with it.
 - PR #3: page, accessibility and CSP fixes.
-- PR 4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
+- PR #4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
+- PR 5: own quotes (above), with the privacy wording, and a fix for tap-to-close on iPhones.
 
 Next:
-5. Only the browser that added a quote can edit or delete it: a `ww_key` cookie, with `ownerHash` on each quote.
-6. Like once per browser.
+6. Like once per browser: `likedBy` hashes on each quote, reusing `ww_key`.
 7. Sort and search.
 8. "Inspire me" from the ZenQuotes API: display-only, with the credit link their free tier requires. Their terms forbid republishing, so it can't be saved to the collection.
 9. A README refresh.
 
-PRs 5, 6 and 8 change what the privacy policy has to say. The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.
+PRs 6 and 8 also change what the privacy policy has to say. The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.
