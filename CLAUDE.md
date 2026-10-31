@@ -97,7 +97,8 @@ The whole server is `server.js`. In order:
   - It selects with `querySelector`, never `getElementById` (Bobby's standard).
 - **The edit dialog** is a `<dialog>` opened with `showModal()`.
   - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button.
-  - A click on `::backdrop` lands on the dialog element. main.js closes the dialog only if the press also started there (`pointerdown`), because a text selection dragged out of a field also ends as a click on the dialog.
+  - A click on `::backdrop` lands on the dialog element. main.js closes the dialog only when the press started outside the dialog's box too, because a text selection dragged out of a field also ends as a click on the dialog.
+    - It compares positions (a document-level `pointerdown` against `isOutsideDialog()`), not targets. iPhone Safari reports a touch on the backdrop as starting on the page behind it, so a target check broke tap-to-close there (Bobby's PR #4 check).
   - The × is a 44px light circle with a dark × (9.7:1). Bobby found the plain gray × too faint on his phone.
   - `.modal` has no `display` rule, because the browser shows and hides the dialog.
   - It reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
