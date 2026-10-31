@@ -101,6 +101,10 @@ The whole server is `server.js`. In order:
   - The × is a 44px light circle with a dark × (9.7:1). Bobby found the plain gray × too faint on his phone.
   - `.modal` has no `display` rule, because the browser shows and hides the dialog.
   - It reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
+- **The quote box:** both forms use a `<textarea class="quote-box">` with `maxlength`, plus a "N of 500 characters" line (`.char-count`) tied to it by `aria-describedby`.
+  - `updateCharCount()` in main.js refreshes the line on every input, and when the dialog opens. The add form's line is also rendered by the server, so a refused quote shows its count.
+  - The line isn't a live region, so screen readers read the count when they reach the box, not after every key.
+  - The server collapses line breaks into spaces, like any other whitespace.
 - **Messages:** the bottom-right message (`#message`) sits inside a `role="status"` region that is always on the page, so screen readers announce it. `showMessage()` empties it when it hides, so a repeated message is announced again.
 - **The like button's name** comes from visually hidden text ("Like quote by …. Likes:") plus the visible count. Text buttons ("Add Quote", "Save Changes") have no `aria-label`, so their name matches what's on screen (WCAG 2.5.3).
 - **EJS escaping:** use `<%=` for anything a visitor typed, attribute values included. Keep `<%-` for includes.

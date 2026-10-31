@@ -89,14 +89,17 @@
                     <p class="form-error" role="alert"><%= formError %></p>
                 <% } %>
                 <form action="/addQuotes" method="POST" aria-label="Add new quote">
-                    <div class="form-group">
+                    <div class="form-group form-group--stacked">
                         <label for="author-name" class="visually-hidden">Author's Name</label>
                         <input type="text" id="author-name" placeholder="Author's Name" name="name" value="<%= formValues.name %>" maxlength="<%= limits.name %>" required aria-required="true">
 
                         <label for="quote-text" class="visually-hidden">Quote</label>
-                        <input type="text" id="quote-text" placeholder="Quote" name="quote" value="<%= formValues.quote %>" maxlength="<%= limits.quote %>" required aria-required="true">
-                        
-                        <button type="submit">Add Quote</button>
+                        <textarea id="quote-text" class="quote-box" placeholder="Quote" name="quote" rows="3" maxlength="<%= limits.quote %>" required aria-required="true" aria-describedby="quote-count"><%= formValues.quote %></textarea>
+
+                        <div class="form-actions">
+                            <p class="char-count" id="quote-count"><%= formValues.quote.length %> of <%= limits.quote %> characters</p>
+                            <button type="submit">Add Quote</button>
+                        </div>
                     </div>
                 </form>
             </section>
@@ -138,14 +141,17 @@
                     <form id="editForm" aria-label="Edit quote form">
                         <input type="hidden" id="editId">
                         <p class="form-error" id="editError" role="alert" hidden></p>
-                        <div class="form-group">
+                        <div class="form-group form-group--stacked">
                             <label for="editName" class="visually-hidden">Author's Name</label>
                             <input type="text" id="editName" placeholder="Author's Name" autofocus maxlength="<%= limits.name %>" required aria-required="true">
 
                             <label for="editQuote" class="visually-hidden">Quote</label>
-                            <input type="text" id="editQuote" placeholder="Quote" maxlength="<%= limits.quote %>" required aria-required="true">
-                            
-                            <button type="submit">Save Changes</button>
+                            <textarea id="editQuote" class="quote-box" placeholder="Quote" rows="4" maxlength="<%= limits.quote %>" required aria-required="true" aria-describedby="edit-quote-count"></textarea>
+
+                            <div class="form-actions">
+                                <p class="char-count" id="edit-quote-count">0 of <%= limits.quote %> characters</p>
+                                <button type="submit">Save Changes</button>
+                            </div>
                         </div>
                     </form>
                 </div>
