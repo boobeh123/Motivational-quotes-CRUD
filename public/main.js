@@ -1,10 +1,3 @@
-// Update copyright year
-document.addEventListener('DOMContentLoaded', function() {
-    const yearSpan = document.querySelector('footer p span');
-    if (yearSpan) {
-        yearSpan.innerHTML = `&copy; ${new Date().getFullYear()} Bobby Asakawa`;
-    }
-});
 // DOM Elements
 const quotesList = document.querySelector('.quotes-list');
 const messageDiv = document.querySelector('#message');
@@ -19,10 +12,11 @@ const JSON_HEADERS = { 'Content-Type': 'application/json', 'Accept': 'applicatio
 // Event Listeners
 quotesList.addEventListener('click', handleQuoteAction);
 editForm.addEventListener('submit', handleEditSubmit);
-closeModal.addEventListener('click', () => editModal.style.display = 'none');
-window.addEventListener('click', (e) => {
+closeModal.addEventListener('click', () => editModal.close());
+// A click on the dimmed area around the dialog lands on the dialog itself
+editModal.addEventListener('click', (e) => {
     if (e.target === editModal) {
-        editModal.style.display = 'none';
+        editModal.close();
     }
 });
 
@@ -73,7 +67,9 @@ function handleEdit(quoteCard, quoteId) {
     document.querySelector('#editQuote').value = quoteCard.dataset.quote;
     editError.hidden = true;
 
-    editModal.style.display = 'block';
+    // showModal() moves focus into the dialog (to the autofocus field), closes
+    // it on Escape, and returns focus to the Edit button afterwards
+    editModal.showModal();
 }
 
 // Shows why a save failed inside the dialog, which stays open so the text can be fixed
@@ -130,13 +126,19 @@ async function handleDelete(quoteId) {
     }
 }
 
+let messageTimer;
+
 function showMessage(message, type = 'info') {
     messageDiv.textContent = message;
     messageDiv.className = `message ${type}`;
     messageDiv.style.display = 'block';
-    
-    setTimeout(() => {
+
+    // A newer message restarts the 3 seconds instead of vanishing early. Emptying
+    // the text lets screen readers announce the same message again next time.
+    clearTimeout(messageTimer);
+    messageTimer = setTimeout(() => {
         messageDiv.style.display = 'none';
+        messageDiv.textContent = '';
     }, 3000);
 }
 

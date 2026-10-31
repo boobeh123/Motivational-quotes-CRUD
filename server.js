@@ -12,15 +12,18 @@ const PORT = process.env.PORT || 3000;
 // req.ip the visitor's address, so the rate limiter counts visitors, not the proxy.
 app.set('trust proxy', 1);
 
-// Security middleware with custom CSP
+// Security middleware with custom CSP. No 'unsafe-inline': the pages have no
+// inline scripts, onclick-style attributes or style="" attributes, so keep it
+// that way (setting element.style from main.js is still allowed). cdnjs serves
+// Font Awesome and Google serves the fonts.
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https:"],
+            imgSrc: ["'self'", "data:"],
             connectSrc: ["'self'"]
         }
     }

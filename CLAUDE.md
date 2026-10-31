@@ -84,20 +84,39 @@ The whole server is `server.js`. In order:
 
 ## The page
 
-- **Views:** `views/index.ejs` and `views/privacy.ejs` each carry their own head, header and footer, with no partials. `views/error.ejs` is a smaller page with no scripts.
+- **Views:** `views/index.ejs` and `views/privacy.ejs` each carry their own head, header and footer, with no partials.
+  - The copyright year is rendered by EJS.
+  - `views/error.ejs` is a smaller page with no scripts.
 - **main.js:**
-  - `public/main.js` loads at the end of `<body>` on index and privacy. Its listeners sit at the top, and its function declarations are hoisted.
+  - `public/main.js` loads at the end of `<body>`, on the home page only. It expects the quote list and the edit dialog.
+  - Its listeners sit at the top, and its function declarations are hoisted.
   - It selects with `querySelector`, never `getElementById` (Bobby's standard).
-- **The edit dialog** reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
+- **The edit dialog** is a `<dialog>` opened with `showModal()`.
+  - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button. A click on `::backdrop` lands on the dialog element, which main.js closes.
+  - `.modal` has no `display` rule, because the browser shows and hides the dialog.
+  - It reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
+- **Messages:** the bottom-right message (`#message`) sits inside a `role="status"` region that is always on the page, so screen readers announce it. `showMessage()` empties it when it hides, so a repeated message is announced again.
+- **The like button's name** comes from visually hidden text ("Like quote by …. Likes:") plus the visible count. Text buttons ("Add Quote", "Save Changes") have no `aria-label`, so their name matches what's on screen (WCAG 2.5.3).
 - **EJS escaping:** use `<%=` for anything a visitor typed, attribute values included. Keep `<%-` for includes.
 - **`hidden`:** `#editError` is shown and hidden with the `hidden` attribute, so `.form-error` has no `display` rule. A class that sets `display` overrides `hidden`.
-- **Known issues, for PR 3 of the plan below:**
-  - main.js throws on /privacy, which has no quote list.
-  - Two `preload` links point at `/public/...` and 404.
-  - `/favicon.png`, which the icon and social tags use, doesn't exist.
-  - The edit dialog opens with `style.display` instead of `showModal()`.
-  - Several colors miss WCAG AA contrast.
-  - The CSP still allows `'unsafe-inline'`.
+- **The CSP has no `'unsafe-inline'`.**
+  - No inline scripts, `onclick`-style attributes, `style=""` attributes or `<style>` blocks; setting `element.style` from main.js is fine.
+  - The JSON-LD blocks are data, not scripts, so they need no exception.
+  - Outside hosts: cdnjs (Font Awesome, loaded with an `integrity` hash: change the version and the hash together) and Google Fonts (Roboto 400, 500 and 700).
+- **Colors meet WCAG AA:**
+
+  | Color | Used for | Contrast |
+  |---|---|---|
+  | `#2471a3` | buttons, links, the header gradient's end | 5.3:1 against white |
+  | `#1b5a85` | hover | |
+  | `#5f6b6d` | gray text | 5.5:1 |
+  | `#1e8449` | success messages | |
+  | `#c0392b` | errors | |
+  | `#899396` | input borders | 3.1:1, the minimum for a form control's outline |
+
+  Check any new color against its background.
+- **`prefers-reduced-motion`:** the block at the end of style.css cuts animations and transitions for visitors who ask for less motion.
+- **`public/favicon.png`** is favicon.svg rendered at 512px with headless Chromium. The social tags use it with `twitter:card` set to `summary`.
 
 ## The privacy policy
 
@@ -115,10 +134,14 @@ The whole server is `server.js`. In order:
 
 ## Work in progress
 
-An approved plan (Oct 30 2026), one PR at a time:
-2. Adding, editing, liking and deleting fixes; this file arrived with it.
-3. Page, accessibility and CSP fixes: the known issues above.
-4. A quote box with a character counter, and a 1200×630 social card.
+An approved plan (Oct 30 2026), one PR at a time.
+
+Done:
+- PR #2: adding, editing, liking and deleting fixes. This file arrived with it.
+- PR 3: page, accessibility and CSP fixes.
+
+Next:
+4. A quote box with a character counter, and a 1200×630 social card (`twitter:card` back to `summary_large_image`).
 5. Only the browser that added a quote can edit or delete it: a `ww_key` cookie, with `ownerHash` on each quote.
 6. Like once per browser.
 7. Sort and search.

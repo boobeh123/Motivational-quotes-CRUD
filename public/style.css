@@ -34,7 +34,7 @@ body {
 
 /* Header */
 .main-header {
-    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #2471a3 100%);
     color: white;
     padding: 1.5rem 0;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -171,7 +171,7 @@ body {
 }
 
 .add-quote p {
-    color: #7f8c8d;
+    color: #5f6b6d;
     margin-bottom: 1.5rem;
     font-size: 1.1rem;
 }
@@ -200,7 +200,7 @@ body {
 input[type="text"] {
     flex: 1;
     padding: 1rem 1.2rem;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #899396;
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.3s ease;
@@ -208,13 +208,13 @@ input[type="text"] {
 
 input[type="text"]:focus {
     outline: none;
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    border-color: #2471a3;
+    box-shadow: 0 0 0 3px rgba(36, 113, 163, 0.25);
 }
 
 button {
     padding: 1rem 2rem;
-    background: #3498db;
+    background: #2471a3;
     color: white;
     border: none;
     border-radius: 8px;
@@ -228,9 +228,9 @@ button {
 }
 
 button:hover {
-    background: #2980b9;
+    background: #1b5a85;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    box-shadow: 0 4px 12px rgba(36, 113, 163, 0.2);
 }
 
 button:active {
@@ -274,7 +274,7 @@ button:active {
 .quote-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    border-color: #3498db;
+    border-color: #2471a3;
 }
 
 .quote-content {
@@ -291,7 +291,7 @@ button:active {
 
 .quote-author {
     font-size: 1rem;
-    color: #7f8c8d;
+    color: #5f6b6d;
     font-weight: 500;
 }
 
@@ -308,14 +308,14 @@ button:active {
     background: none;
     border: none;
     cursor: pointer;
-    color: #7f8c8d;
+    color: #5f6b6d;
     transition: all 0.3s ease;
     border-radius: 6px;
 }
 
 .quote-actions button:hover {
-    color: #3498db;
-    background: rgba(52, 152, 219, 0.1);
+    color: #2471a3;
+    background: rgba(36, 113, 163, 0.1);
     transform: translateY(-2px);
 }
 
@@ -334,37 +334,51 @@ button:active {
     font-weight: 500;
 }
 
-/* Modal */
+/* Modal. The edit dialog opens with showModal(), so the browser centers it,
+   dims the page behind it, keeps focus inside it and closes it on Escape.
+   No display rule here: the browser shows and hides the dialog itself. */
 .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    width: 90%;
+    max-width: 700px;
+    margin: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.modal::backdrop {
     background: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
     backdrop-filter: blur(5px);
 }
 
 .modal-content {
     position: relative;
     background: white;
-    width: 90%;
-    max-width: 700px;
-    margin: 2rem auto;
     padding: 2.5rem;
     border-radius: 15px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
+/* The dialog's fields stack, so Save Changes always fits inside it */
+.modal .form-group {
+    flex-direction: column;
+}
+
+.modal .form-group button {
+    align-self: flex-end;
+}
+
+/* Without the background and padding resets, the × inherits the blue
+   button style, which hid it */
 .close {
+    background: none;
+    padding: 0;
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #7f8c8d;
+    color: #5f6b6d;
     transition: all 0.3s ease;
     width: 30px;
     height: 30px;
@@ -376,7 +390,8 @@ button:active {
 
 .close:hover {
     background: #f0f0f0;
-    color: #e74c3c;
+    color: #c0392b;
+    box-shadow: none;
 }
 
 /* Message */
@@ -406,15 +421,15 @@ button:active {
 }
 
 #message.success {
-    background: #2ecc71;
+    background: #1e8449;
 }
 
 #message.error {
-    background: #e74c3c;
+    background: #c0392b;
 }
 
 #message.info {
-    background: #3498db;
+    background: #2471a3;
 }
 
 /* Responsive Design */
@@ -437,9 +452,11 @@ button:active {
         grid-template-columns: 1fr;
     }
 
-    .modal-content {
+    .modal {
         width: 95%;
-        margin: 1rem;
+    }
+
+    .modal-content {
         padding: 1.5rem;
     }
 
@@ -539,7 +556,7 @@ button:active {
 }
 
 .footer-bottom p {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
 }
 
@@ -582,7 +599,7 @@ button:active {
 }
 
 .last-updated {
-    color: #7f8c8d;
+    color: #5f6b6d;
     font-size: 0.9rem;
     margin-bottom: 2rem;
 }
@@ -617,13 +634,13 @@ button:active {
 }
 
 .policy-content a {
-    color: #3498db;
+    color: #2471a3;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .policy-content a:hover {
-    color: #2980b9;
+    color: #1b5a85;
     text-decoration: underline;
 }
 
@@ -692,5 +709,17 @@ button:active {
     .error-page {
         padding: 1.5rem;
         margin: 1rem;
+    }
+}
+
+/* Reduced motion: for visitors whose system asks for less movement */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }
