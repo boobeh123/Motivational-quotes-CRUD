@@ -82,10 +82,11 @@ const renderHome = async (request, response, status, form = {}) => {
     // Most liked first, and newest first among equal likes. _id holds the
     // creation time; quotes from 2022 have no createdAt.
     const found = await db.collection(COLL_NAME).find().sort({ likes: -1, _id: -1 }).toArray();
-    // Mark the quotes this browser added, and keep every owner's hash off the page
-    const quotes = found.map(({ ownerHash, ...quote }) => ({
+    // Mark the quotes this browser added or liked, and keep every hash off the page
+    const quotes = found.map(({ ownerHash, likedBy, ...quote }) => ({
         ...quote,
-        isOwner: Boolean(ownerHash) && ownerHash === request.visitorHash
+        isOwner: Boolean(ownerHash) && ownerHash === request.visitorHash,
+        likedByViewer: Boolean(request.visitorHash) && Array.isArray(likedBy) && likedBy.includes(request.visitorHash)
     }));
     const typed = (value) => (typeof value === 'string' ? value : '');
     response.status(status).render('index.ejs', {
@@ -117,6 +118,12 @@ const refuseChange = async (response, id, action) => {
         return response.status(403).json({ error: `You can only ${action} quotes added from this browser` });
     }
     response.status(404).json({ error: 'Quote not found' });
+};
+
+// A quote's like count, or null when there's no such quote
+const likeCount = async (id) => {
+    const quote = await db.collection(COLL_NAME).findOne({ _id: new ObjectId(id) }, { projection: { likes: 1 } });
+    return quote ? quote.likes : null;
 };
 
 // Routes
@@ -171,7 +178,7 @@ app.put('/editQuote', async (request, response) => {
     const updatedQuote = await db.collection(COLL_NAME).findOneAndUpdate(
         { _id: new ObjectId(id), ownerHash: request.visitorHash },
         { $set: { name, quote, updatedAt: new Date() } },
-        { returnDocument: 'after', projection: { ownerHash: 0 } }
+        { returnDocument: 'after', projection: { ownerHash: 0, likedBy: 0 } }
     );
     if (!updatedQuote) {
         return refuseChange(response, id, 'edit');
@@ -179,22 +186,50 @@ app.put('/editQuote', async (request, response) => {
     response.json(updatedQuote);
 });
 
+// One like per browser: likedBy holds the hashed key of every browser that
+// liked the quote. Counts from before likedBy existed stay as the base.
 app.put('/addUpvote', async (request, response) => {
     const { id } = request.body ?? {};
     if (!isQuoteId(id)) {
         return response.status(400).json({ error: 'Invalid quote ID' });
     }
 
-    // $inc adds one on the server, so a like can't set the count to anything else
+    // A first like gives the browser its key, as adding a quote does
+    const visitorHash = giveVisitorKey(request, response);
+    // Matches only while this browser hasn't liked the quote, so liking twice
+    // changes nothing. $inc adds the one like on the server.
     const updatedQuote = await db.collection(COLL_NAME).findOneAndUpdate(
-        { _id: new ObjectId(id) },
-        { $inc: { likes: 1 }, $set: { updatedAt: new Date() } },
-        { returnDocument: 'after', projection: { ownerHash: 0 } }
+        { _id: new ObjectId(id), likedBy: { $ne: visitorHash } },
+        { $addToSet: { likedBy: visitorHash }, $inc: { likes: 1 }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after', projection: { likes: 1 } }
     );
-    if (!updatedQuote) {
+    const likes = updatedQuote ? updatedQuote.likes : await likeCount(id);
+    if (likes === null) {
         return response.status(404).json({ error: 'Quote not found' });
     }
-    response.json(updatedQuote);
+    response.json({ likes, liked: true });
+});
+
+// Takes back this browser's like
+app.put('/removeUpvote', async (request, response) => {
+    const { id } = request.body ?? {};
+    if (!isQuoteId(id)) {
+        return response.status(400).json({ error: 'Invalid quote ID' });
+    }
+
+    // Only a like this browser made can come off. Without a key there's none,
+    // and likedBy: null would match every quote with no likedBy list yet,
+    // taking a like off its count.
+    const updatedQuote = request.visitorHash && await db.collection(COLL_NAME).findOneAndUpdate(
+        { _id: new ObjectId(id), likedBy: request.visitorHash },
+        { $pull: { likedBy: request.visitorHash }, $inc: { likes: -1 }, $set: { updatedAt: new Date() } },
+        { returnDocument: 'after', projection: { likes: 1 } }
+    );
+    const likes = updatedQuote ? updatedQuote.likes : await likeCount(id);
+    if (likes === null) {
+        return response.status(404).json({ error: 'Quote not found' });
+    }
+    response.json({ likes, liked: false });
 });
 
 app.delete('/deleteQuote', async (request, response) => {

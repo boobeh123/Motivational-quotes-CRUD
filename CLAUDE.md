@@ -50,7 +50,8 @@ The whole server is `server.js`. In order:
 | GET /addQuotes | a refresh or the back button | a 302 to `/` |
 | POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`). A post from another site gets a 403. |
 | PUT /editQuote | main.js `fetch()` | the updated quote, or `{ error }`: a 403 for another browser's quote, a 404 for none |
-| PUT /addUpvote | main.js `fetch()` | the updated quote, or `{ error }` |
+| PUT /addUpvote | main.js `fetch()` | `{ likes, liked: true }`; liking twice changes nothing |
+| PUT /removeUpvote | main.js `fetch()` | `{ likes, liked: false }`: takes back this browser's like |
 | DELETE /deleteQuote | main.js `fetch()` | `{ message }`, or `{ error }` (403 or 404, as for editing) |
 
 **Validation** is in `middleware/validators.js`, as pure functions tested in `test/validators.test.js`.
@@ -77,10 +78,16 @@ The whole server is `server.js`. In order:
 
 **The database:**
 - Database `motivational-quotes`, collection `quotes`.
-- Fields: `name`, `quote`, `likes` (a number), `ownerHash`, `createdAt` and `updatedAt`.
+- Fields: `name`, `quote`, `likes` (a number), `ownerHash`, `likedBy` (a list of hashed keys), `createdAt` and `updatedAt`.
   - Quotes from 2022 have no `createdAt`, which is why ties sort on `_id`.
   - Quotes added before Oct 2026's PR 5 have no `ownerHash`.
 - Likes only change through `$inc`; the page sends just the quote's id.
+- **Likes are one per browser.**
+  - `PUT /addUpvote` gives the browser a key if it has none, then `$addToSet`s its hash to `likedBy` and `$inc`s `likes`. The filter is `likedBy: { $ne: hash }`, so a second like matches nothing.
+  - `PUT /removeUpvote` `$pull`s it and `$inc`s by −1, filtered on `likedBy: hash`. It never runs without a key: `likedBy: null` would match every quote with no list and take a like off.
+  - Counts from before PR 6 have no `likedBy` entries, so they stay as the base and can't be taken back.
+  - Replies are `{ likes, liked }`.
+  - A script that throws away its cookie can still like again. The general rate limit (100 per 15 minutes) is what slows it.
 - In driver 7, `findOneAndUpdate` returns the document itself, or null, not `{ value }`.
 
 **Adding quotes** has its own limiter, `addQuoteLimiter`:
@@ -92,8 +99,8 @@ The whole server is `server.js`. In order:
 - **The key:** a browser's first saved quote calls `giveVisitorKey()`, which sets the `ww_key` cookie: 32 random bytes as base64url, httpOnly, `sameSite: 'lax'`, `secure` from `req.secure`, one year.
 - **Storage:** the quote stores `ownerHash`, the SHA-256 of that key. `loadVisitor` (before the routes) sets `req.visitorHash` from a well-formed cookie, or to null.
 - **Hashes never leave the server:**
-  - `renderHome()` turns `ownerHash` into an `isOwner` flag, so index.ejs shows Edit and Delete only on the visitor's own quotes.
-  - Every `findOneAndUpdate` reply drops the field with `projection: { ownerHash: 0 }`.
+  - `renderHome()` turns `ownerHash` into `isOwner` and `likedBy` into `likedByViewer`, then drops both fields. index.ejs shows Edit and Delete only on the visitor's own quotes, and a solid heart with `aria-pressed="true"` on the ones they liked.
+  - Edit replies use `projection: { ownerHash: 0, likedBy: 0 }`. Like replies carry only `{ likes, liked }`.
 - **Edits and deletes** filter on `{ _id, ownerHash: req.visitorHash }`. `refuseChange()` answers 403 when the quote exists but isn't theirs, and 404 when it doesn't exist.
 - **Never query without a key.** If `req.visitorHash` is null, refuse before touching the database: a filter on `ownerHash: null` matches every quote that has no `ownerHash`.
 - **Older quotes have no owner,** so nobody can edit or delete them on the site. Bobby manages them in Atlas.
@@ -122,6 +129,10 @@ The whole server is `server.js`. In order:
   - The line isn't a live region, so screen readers read the count when they reach the box, not after every key.
   - The server collapses line breaks into spaces, like any other whitespace.
 - **Messages:** the bottom-right message (`#message`) sits inside a `role="status"` region that is always on the page, so screen readers announce it. `showMessage()` empties it when it hides, so a repeated message is announced again.
+- **The like button** is a toggle.
+  - It starts as an outline heart with `aria-pressed="false"`. After a like it's a solid heart, `"true"`, with the title "Remove your like".
+  - `handleLike()` calls `/removeUpvote` when it's pressed and `/addUpvote` otherwise, then `showLiked()` updates it.
+  - A `data-busy` flag ignores presses while a request runs. It's not `disabled`, which would knock keyboard focus off the button.
 - **The like button's name** comes from visually hidden text ("Like quote by …. Likes:") plus the visible count. Text buttons ("Add Quote", "Save Changes") have no `aria-label`, so their name matches what's on screen (WCAG 2.5.3).
 - **EJS escaping:** use `<%=` for anything a visitor typed, attribute values included. Keep `<%-` for includes.
 - **`hidden`:** `#editError` is shown and hidden with the `hidden` attribute, so `.form-error` has no `display` rule. A class that sets `display` overrides `hidden`.
@@ -169,12 +180,12 @@ Done:
 - PR #2: adding, editing, liking and deleting fixes. This file arrived with it.
 - PR #3: page, accessibility and CSP fixes.
 - PR #4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
-- PR 5: own quotes (above), with the privacy wording, and a fix for tap-to-close on iPhones.
+- PR #5: own quotes (above), with the privacy wording, and a fix for tap-to-close on iPhones.
+- PR 6: one like per browser, with a privacy line.
 
 Next:
-6. Like once per browser: `likedBy` hashes on each quote, reusing `ww_key`.
 7. Sort and search.
 8. "Inspire me" from the ZenQuotes API: display-only, with the credit link their free tier requires. Their terms forbid republishing, so it can't be saved to the collection.
 9. A README refresh.
 
-PRs 6 and 8 also change what the privacy policy has to say. The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.
+PR 8 also changes what the privacy policy has to say. The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.

@@ -108,7 +108,7 @@
                             <li>Author names associated with quotes</li>
                             <li>Like counts for each quote</li>
                             <li>Timestamps for quote creation and updates</li>
-                            <li>A random code for each browser that adds a quote, stored with its quotes only as a one-way hash (see section 4)</li>
+                            <li>A random code for each browser that adds or likes a quote, stored with those quotes only as a one-way hash (see section 4)</li>
                         </ul>
                     </section>
 
@@ -120,6 +120,7 @@
                             <li>Tracking quote popularity through likes</li>
                             <li>Maintaining the chronological order of quotes</li>
                             <li>Letting the browser that added a quote edit or delete it</li>
+                            <li>Counting one like per browser, and letting that browser take its like back</li>
                         </ul>
                     </section>
 
@@ -143,7 +144,7 @@
                             <li>IP addresses (except for rate limiting, each IP allowed a limited amount requests and is not stored)</li>
                             <li>Tracking cookies or tracking data</li>
                         </ul>
-                        <p>The one cookie WisdomWell sets is <code>ww_key</code>. It's created when you add a quote, holds a random code, and lets the same browser edit or delete the quotes it added. It doesn't identify you, isn't shared with anyone, and isn't used for tracking or ads. It lasts one year. If you clear your cookies or switch browsers or devices, you can no longer edit or delete those quotes.</p>
+                        <p>The one cookie WisdomWell sets is <code>ww_key</code>. It's created when you add or like a quote, holds a random code, and lets the same browser edit or delete the quotes it added, and like each quote once. It doesn't identify you, isn't shared with anyone, and isn't used for tracking or ads. It lasts one year. If you clear your cookies or switch browsers or devices, you can no longer edit or delete those quotes, or take back those likes.</p>
                     </section>
 
                     <section aria-labelledby="user-rights-title">
