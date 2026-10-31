@@ -197,8 +197,8 @@ body {
     margin-top: 1.5rem;
 }
 
-input[type="text"] {
-    flex: 1;
+input[type="text"],
+textarea {
     padding: 1rem 1.2rem;
     border: 2px solid #899396;
     border-radius: 8px;
@@ -206,7 +206,39 @@ input[type="text"] {
     transition: all 0.3s ease;
 }
 
-input[type="text"]:focus {
+input[type="text"] {
+    flex: 1;
+}
+
+/* The quote box uses the page's font, and can be dragged taller */
+textarea {
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+/* Both forms: the fields stack, with the character count and the button
+   in a row underneath */
+.form-group--stacked {
+    flex-direction: column;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.char-count,
+.add-quote .char-count {
+    margin: 0;
+    color: #5f6b6d;
+    font-size: 0.9rem;
+}
+
+input[type="text"]:focus,
+textarea:focus {
     outline: none;
     border-color: #2471a3;
     box-shadow: 0 0 0 3px rgba(36, 113, 163, 0.25);
@@ -359,37 +391,30 @@ button:active {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
-/* The dialog's fields stack, so Save Changes always fits inside it */
-.modal .form-group {
-    flex-direction: column;
-}
-
-.modal .form-group button {
-    align-self: flex-end;
-}
-
-/* Without the background and padding resets, the × inherits the blue
-   button style, which hid it */
+/* A light circle with a dark ×, 44px across so it's easy to see and to tap.
+   It sets its own background and padding, or it would inherit the blue
+   button style, which once hid the × completely. */
 .close {
-    background: none;
+    background: #eef1f3;
     padding: 0;
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    font-size: 1.5rem;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    line-height: 1;
     cursor: pointer;
-    color: #5f6b6d;
+    color: #2c3e50;
     transition: all 0.3s ease;
-    width: 30px;
-    height: 30px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10%;
+    border-radius: 50%;
 }
 
 .close:hover {
-    background: #f0f0f0;
+    background: #e0e4e7;
     color: #c0392b;
     box-shadow: none;
 }

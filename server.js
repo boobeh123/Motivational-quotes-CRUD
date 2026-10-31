@@ -109,6 +109,12 @@ app.get('/privacy', (request, response) => {
     response.render('privacy.ejs');
 });
 
+// The add form posts to /addQuotes. A browser can still ask for it as a page,
+// say a refresh after a refused quote with JavaScript off, so send it home.
+app.get('/addQuotes', (request, response) => {
+    response.redirect('/');
+});
+
 app.post('/addQuotes', addQuoteLimiter, async (request, response) => {
     const { name, quote, error } = checkQuoteInput(request.body);
     if (error) {

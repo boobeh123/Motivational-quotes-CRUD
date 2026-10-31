@@ -47,6 +47,7 @@ The whole server is `server.js`. In order:
 |---|---|---|
 | GET / | the browser | the page, quotes sorted `{ likes: -1, _id: -1 }` |
 | GET /privacy | the browser | the privacy page |
+| GET /addQuotes | a refresh or the back button | a 302 to `/` |
 | POST /addQuotes | the add form (a plain form post) | a 302 to `/`, or the page again with the reason (400, or 429 from `addQuoteLimiter`) |
 | PUT /editQuote | main.js `fetch()` | the updated quote, or `{ error }` |
 | PUT /addUpvote | main.js `fetch()` | the updated quote, or `{ error }` |
@@ -65,6 +66,9 @@ The whole server is `server.js`. In order:
 
 **Errors:**
 - The add form is a plain form post, so its errors re-render index.ejs through `renderHome()`, with `formError` and the typed `formValues`. index.ejs needs both locals on every render.
+- That page is the reply to the POST, so its address is `/addQuotes`.
+  - main.js swaps the address for `/` on load (`history.replaceState`). Any reload, such as the one after saving an edit, then asks for `/` with a GET, instead of re-sending the refused form (Chromium) or asking for a page that doesn't exist (the 404 Bobby hit on Oct 30 2026).
+  - `GET /addQuotes` redirects to `/`, for refreshes with JavaScript off.
 - The `fetch()` calls in main.js send `Accept: application/json` and get `{ error }`, which main.js shows. The edit dialog shows it in `#editError` and stays open.
 - `sendError()` picks JSON or `views/error.ejs` by the Accept header. It serves the 404 handler and the error handler.
 - The error handler keeps the parsers' 4xx statuses: 400 for bad JSON, 413 over 10kb, 415 for a compressed body. It never shows `err.message`.
@@ -92,9 +96,15 @@ The whole server is `server.js`. In order:
   - Its listeners sit at the top, and its function declarations are hoisted.
   - It selects with `querySelector`, never `getElementById` (Bobby's standard).
 - **The edit dialog** is a `<dialog>` opened with `showModal()`.
-  - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button. A click on `::backdrop` lands on the dialog element, which main.js closes.
+  - The browser moves focus to the `autofocus` field, closes it on Escape, and returns focus to the Edit button.
+  - A click on `::backdrop` lands on the dialog element. main.js closes the dialog only if the press also started there (`pointerdown`), because a text selection dragged out of a field also ends as a click on the dialog.
+  - The × is a 44px light circle with a dark × (9.7:1). Bobby found the plain gray × too faint on his phone.
   - `.modal` has no `display` rule, because the browser shows and hides the dialog.
   - It reads a quote from the card's `data-name` and `data-quote` attributes, not from the card's text. Reading the text used to strip every `"`.
+- **The quote box:** both forms use a `<textarea class="quote-box">` with `maxlength`, plus a "N of 500 characters" line (`.char-count`) tied to it by `aria-describedby`.
+  - `updateCharCount()` in main.js refreshes the line on every input, and when the dialog opens. The add form's line is also rendered by the server, so a refused quote shows its count.
+  - The line isn't a live region, so screen readers read the count when they reach the box, not after every key.
+  - The server collapses line breaks into spaces, like any other whitespace.
 - **Messages:** the bottom-right message (`#message`) sits inside a `role="status"` region that is always on the page, so screen readers announce it. `showMessage()` empties it when it hides, so a repeated message is announced again.
 - **The like button's name** comes from visually hidden text ("Like quote by …. Likes:") plus the visible count. Text buttons ("Add Quote", "Save Changes") have no `aria-label`, so their name matches what's on screen (WCAG 2.5.3).
 - **EJS escaping:** use `<%=` for anything a visitor typed, attribute values included. Keep `<%-` for includes.
@@ -116,7 +126,10 @@ The whole server is `server.js`. In order:
 
   Check any new color against its background.
 - **`prefers-reduced-motion`:** the block at the end of style.css cuts animations and transitions for visitors who ask for less motion.
-- **`public/favicon.png`** is favicon.svg rendered at 512px with headless Chromium. The social tags use it with `twitter:card` set to `summary`.
+- **`public/favicon.png`** is favicon.svg rendered at 512px with headless Chromium.
+- **`public/og-image.png`** (1200×630) is the social card that link previews show (`og:image`, `twitter:card` `summary_large_image`), on the home and privacy pages.
+  - It's rendered from the HTML template `~/projects/.scratchpad/wisdomwell/social-card/card.html` (on Bobby's Pi) with headless Chromium.
+  - To change it, edit the template, render it again, and keep the width, height and alt tags in step.
 
 ## The privacy policy
 
@@ -138,10 +151,10 @@ An approved plan (Oct 30 2026), one PR at a time.
 
 Done:
 - PR #2: adding, editing, liking and deleting fixes. This file arrived with it.
-- PR 3: page, accessibility and CSP fixes.
+- PR #3: page, accessibility and CSP fixes.
+- PR 4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
 
 Next:
-4. A quote box with a character counter, and a 1200×630 social card (`twitter:card` back to `summary_large_image`).
 5. Only the browser that added a quote can edit or delete it: a `ww_key` cookie, with `ownerHash` on each quote.
 6. Like once per browser.
 7. Sort and search.

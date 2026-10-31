@@ -5,17 +5,32 @@ const editModal = document.querySelector('#editModal');
 const editForm = document.querySelector('#editForm');
 const editError = document.querySelector('#editError');
 const closeModal = document.querySelector('.close');
+const quoteBoxes = document.querySelectorAll('.quote-box');
 
 // fetch() calls send JSON and ask for JSON back, so a failure arrives as { error }
 const JSON_HEADERS = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
 
+// A refused quote comes back as the reply to the form post, so the address
+// bar reads /addQuotes. Point it back at /: reloading /addQuotes (as saving an
+// edit does) would send the refused form again, or land on "Page not found".
+if (window.location.pathname === '/addQuotes') {
+    history.replaceState(null, '', '/');
+}
+
 // Event Listeners
 quotesList.addEventListener('click', handleQuoteAction);
 editForm.addEventListener('submit', handleEditSubmit);
+quoteBoxes.forEach((box) => box.addEventListener('input', () => updateCharCount(box)));
 closeModal.addEventListener('click', () => editModal.close());
-// A click on the dimmed area around the dialog lands on the dialog itself
+// A click on the dimmed area around the dialog lands on the dialog itself.
+// Close only when the press started there too: a press that starts in a field
+// (selecting text, say) and ends outside also counts as a click on the dialog.
+let pressStartedOutside = false;
+editModal.addEventListener('pointerdown', (e) => {
+    pressStartedOutside = e.target === editModal;
+});
 editModal.addEventListener('click', (e) => {
-    if (e.target === editModal) {
+    if (e.target === editModal && pressStartedOutside) {
         editModal.close();
     }
 });
@@ -65,11 +80,20 @@ function handleEdit(quoteCard, quoteId) {
     document.querySelector('#editId').value = quoteId;
     document.querySelector('#editName').value = quoteCard.dataset.name;
     document.querySelector('#editQuote').value = quoteCard.dataset.quote;
+    updateCharCount(document.querySelector('#editQuote'));
     editError.hidden = true;
 
     // showModal() moves focus into the dialog (to the autofocus field), closes
     // it on Escape, and returns focus to the Edit button afterwards
     editModal.showModal();
+}
+
+// Updates the "N of 500 characters" line a quote box points to with aria-describedby.
+// It isn't a live region, so screen readers hear the count when they reach the
+// box, not after every key.
+function updateCharCount(box) {
+    const counter = document.querySelector(`#${box.getAttribute('aria-describedby')}`);
+    counter.textContent = `${box.value.length} of ${box.maxLength} characters`;
 }
 
 // Shows why a save failed inside the dialog, which stays open so the text can be fixed
