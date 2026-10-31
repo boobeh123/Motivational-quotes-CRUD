@@ -6,6 +6,8 @@ const editForm = document.querySelector('#editForm');
 const editError = document.querySelector('#editError');
 const closeModal = document.querySelector('.close');
 const quoteBoxes = document.querySelectorAll('.quote-box');
+const inspireButton = document.querySelector('.inspire-btn');
+const inspireQuote = document.querySelector('.inspire-quote');
 
 // fetch() calls send JSON and ask for JSON back, so a failure arrives as { error }
 const JSON_HEADERS = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
@@ -21,6 +23,7 @@ if (window.location.pathname === '/addQuotes') {
 quotesList.addEventListener('click', handleQuoteAction);
 editForm.addEventListener('submit', handleEditSubmit);
 quoteBoxes.forEach((box) => box.addEventListener('input', () => updateCharCount(box)));
+inspireButton.addEventListener('click', handleInspire);
 closeModal.addEventListener('click', () => editModal.close());
 // A click on the dimmed area around the dialog lands on the dialog itself.
 // Close only when the press started outside the dialog's box too: a press that
@@ -87,6 +90,30 @@ async function handleLike(quoteCard, quoteId) {
         showMessage(wasLiked ? 'Failed to remove like' : 'Failed to like quote', 'error');
     } finally {
         delete likeButton.dataset.busy;
+    }
+}
+
+// "Inspire me": a random quote from ZenQuotes, through WisdomWell's server.
+// It's only shown, with their credit, never added to the collection.
+async function handleInspire() {
+    if (inspireButton.dataset.busy) return;
+    inspireButton.dataset.busy = 'true';
+
+    try {
+        const response = await fetch('/api/inspire', { headers: { Accept: 'application/json' } });
+        if (!response.ok) {
+            return showMessage(await errorMessage(response, "Couldn't fetch a quote right now"), 'error');
+        }
+
+        const { quote, author } = await response.json();
+        inspireQuote.querySelector('.inspire-text').textContent = `"${quote}"`;
+        inspireQuote.querySelector('.inspire-author').textContent = `- ${author}`;
+        inspireQuote.hidden = false;
+    } catch (error) {
+        console.error('Error:', error);
+        showMessage("Couldn't fetch a quote right now", 'error');
+    } finally {
+        delete inspireButton.dataset.busy;
     }
 }
 

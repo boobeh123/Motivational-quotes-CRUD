@@ -107,6 +107,19 @@
                     </div>
                 </form>
                 <p class="form-note">You can edit or delete the quotes you add, from this browser.</p>
+                <div class="inspire">
+                    <p class="inspire-prompt">Looking for inspiration?</p>
+                    <button type="button" class="inspire-btn">Inspire me</button>
+                </div>
+                <%# The quote from ZenQuotes shows here, with the credit their free tier requires.
+                    The region stays on the page, so screen readers announce each new quote. %>
+                <div class="inspire-result" aria-live="polite">
+                    <figure class="inspire-quote" hidden>
+                        <blockquote class="inspire-text"></blockquote>
+                        <figcaption class="inspire-author"></figcaption>
+                        <p class="inspire-credit">Inspirational quotes provided by <a href="https://zenquotes.io/" target="_blank" rel="noopener">ZenQuotes API</a></p>
+                    </figure>
+                </div>
             </section>
 
             <section class="quotes" aria-labelledby="quotes-title">
