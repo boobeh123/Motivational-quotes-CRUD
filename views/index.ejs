@@ -15,25 +15,22 @@
     <meta property="og:url" content="https://wisdomwell.up.railway.app/" />
     <meta property="og:image" content="https://wisdomwell.up.railway.app/favicon.png" />
     <meta property="og:site_name" content="WisdomWell" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@boobeh123" />
     <meta name="twitter:title" content="WisdomWell - Share & Discover Inspirational Quotes" />
     <meta name="twitter:description" content="Join WisdomWell to share and discover motivational quotes. A community-driven platform for inspiration, wisdom, and positive thinking." />
     <meta name="twitter:image" content="https://wisdomwell.up.railway.app/favicon.png" />
     <meta name="theme-color" content="#2c3e50" />
     <link rel="canonical" href="https://wisdomwell.up.railway.app/" />
-    <!-- Preload -->
-    <link rel="preload" href="./public/style.css" as="style">
-    <link rel="preload" href="./public/main.js" as="script">
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/png" href="/favicon.png">
     <!-- Fontawesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <!-- Google fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&family=Roboto:wght@100;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- External CSS -->
     <link rel="stylesheet" href="/style.css">
     <!-- Structured Data -->
@@ -62,8 +59,7 @@
             "Discover inspirational content",
             "Like and interact with quotes",
             "Edit and manage your quotes"
-        ],
-        "screenshot": "https://wisdomwell.up.railway.app/favicon.png"
+        ]
     }
     </script>
     <title>WisdomWell - Share & Discover Inspirational Quotes</title>
@@ -100,7 +96,7 @@
                         <label for="quote-text" class="visually-hidden">Quote</label>
                         <input type="text" id="quote-text" placeholder="Quote" name="quote" value="<%= formValues.quote %>" maxlength="<%= limits.quote %>" required aria-required="true">
                         
-                        <button type="submit" aria-label="Submit new quote">Add Quote</button>
+                        <button type="submit">Add Quote</button>
                     </div>
                 </form>
             </section>
@@ -111,13 +107,15 @@
                     <% for(let i = 0; i < quotes.length; i++) {%>
                         <li class="quote-card" data-id="<%= quotes[i]._id.toString() %>" data-name="<%= quotes[i].name %>" data-quote="<%= quotes[i].quote %>" role="listitem">
                             <article class="quote-content" aria-label="Quote by <%= quotes[i].name %>">
-                                <blockquote class="quote-text" aria-label="Quote text">"<%= quotes[i].quote %>"</blockquote>
-                                <footer class="quote-author" aria-label="Quote author">- <%= quotes[i].name %></footer>
+                                <blockquote class="quote-text">"<%= quotes[i].quote %>"</blockquote>
+                                <footer class="quote-author">- <%= quotes[i].name %></footer>
                             </article>
-                            <nav class="quote-actions" aria-label="Actions for quote by <%= quotes[i].name %>">
-                                <button class="like-btn" title="Like this quote" aria-label="Like quote by <%= quotes[i].name %>" aria-pressed="<%= quotes[i].likes > 0 ? 'true' : 'false' %>">
+                            <div class="quote-actions">
+                                <button class="like-btn" title="Like this quote">
                                     <i class="fas fa-heart" aria-hidden="true"></i>
-                                    <span class="likes-count" aria-label="<%= quotes[i].likes %> likes"><%= quotes[i].likes %></span>
+                                    <%# The hidden text makes the button's name "Like quote by …. Likes: 3", count included %>
+                                    <span class="visually-hidden">Like quote by <%= quotes[i].name %>. Likes:</span>
+                                    <span class="likes-count"><%= quotes[i].likes %></span>
                                 </button>
                                 <button class="edit-btn" title="Edit this quote" aria-label="Edit quote by <%= quotes[i].name %>">
                                     <i class="fas fa-edit" aria-hidden="true"></i>
@@ -125,7 +123,7 @@
                                 <button class="delete-btn" title="Delete this quote" aria-label="Delete quote by <%= quotes[i].name %>">
                                     <i class="fas fa-trash" aria-hidden="true"></i>
                                 </button>
-                            </nav>
+                            </div>
                         </li>
                     <% } %>
                 </ul>
@@ -134,7 +132,7 @@
             <!-- Edit Modal -->
             <dialog id="editModal" class="modal" aria-labelledby="edit-modal-title" aria-describedby="edit-modal-description">
                 <div class="modal-content">
-                    <button class="close" aria-label="Close edit modal">&times;</button>
+                    <button class="close" aria-label="Close">&times;</button>
                     <h2 id="edit-modal-title">Edit Quote</h2>
                     <p id="edit-modal-description" class="visually-hidden">Edit the quote text and author name</p>
                     <form id="editForm" aria-label="Edit quote form">
@@ -142,12 +140,12 @@
                         <p class="form-error" id="editError" role="alert" hidden></p>
                         <div class="form-group">
                             <label for="editName" class="visually-hidden">Author's Name</label>
-                            <input type="text" id="editName" placeholder="Author's Name" maxlength="<%= limits.name %>" required aria-required="true">
+                            <input type="text" id="editName" placeholder="Author's Name" autofocus maxlength="<%= limits.name %>" required aria-required="true">
 
                             <label for="editQuote" class="visually-hidden">Quote</label>
                             <input type="text" id="editQuote" placeholder="Quote" maxlength="<%= limits.quote %>" required aria-required="true">
                             
-                            <button type="submit" aria-label="Save quote changes">Save Changes</button>
+                            <button type="submit">Save Changes</button>
                         </div>
                     </form>
                 </div>
@@ -155,7 +153,8 @@
         </div>
     </main>
 
-    <aside id="message" role="alert" aria-live="polite" aria-atomic="true"></aside>
+    <%# The live region stays on the page, so screen readers announce each message shown inside it %>
+    <div role="status" aria-atomic="true"><div id="message"></div></div>
 
     <footer class="main-footer" role="contentinfo">
         <div class="footer-content">
@@ -185,7 +184,7 @@
             </section>
         </div>
         <div class="footer-bottom">
-            <p><span class="copyright"></span>. All rights reserved.</p>
+            <p>&copy; <%= new Date().getFullYear() %> Bobby Asakawa. All rights reserved.</p>
         </div>
     </footer>
 
