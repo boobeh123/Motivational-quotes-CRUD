@@ -1,13 +1,15 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const app = express();
 const MongoClient = require('mongodb').MongoClient;
 const { ObjectId } = require('mongodb');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const cors = require('cors');
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
+
+// Railway sends each request through one proxy. Trusting that one hop makes
+// req.ip the visitor's address, so the rate limiter counts visitors, not the proxy.
+app.set('trust proxy', 1);
 
 // Security middleware with custom CSP
 app.use(helmet({
@@ -23,21 +25,20 @@ app.use(helmet({
     }
 }));
 
-app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000'
-}));
-
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    limit: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again later'
 });
 app.use(limiter);
 
-// Request size limits
-app.use(bodyParser.json({ limit: '10kb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10kb' }));
+// Request size limits. inflate: false refuses compressed bodies (415): browsers
+// never compress a form post or a fetch() body, and decompressing one reached
+// the Brotli bug fixed in Node's Oct 2026 security release.
+app.use(express.json({ limit: '10kb', inflate: false }));
+// extended: false keeps a field like name[$ne] a plain key instead of an object
+app.use(express.urlencoded({ extended: false, limit: '10kb', inflate: false }));
 
 // Validate required environment variables
 if (!process.env.DB_STRING) {
@@ -55,7 +56,8 @@ let db;
 
 // Input validation middleware
 const validateQuoteInput = (req, res, next) => {
-    const { name, quote } = req.body;
+    // Express 5 leaves req.body undefined when a request has no body
+    const { name, quote } = req.body ?? {};
     
     // Check if fields exist
     if (!name || !quote) {
@@ -84,17 +86,6 @@ const validateQuoteInput = (req, res, next) => {
 
     next();
 };
-
-// Connect to MongoDB
-MongoClient.connect(process.env.DB_STRING)
-.then(client => {
-    console.log(`Connected to ${DB_NAME} Database`);
-    db = client.db(DB_NAME);
-})
-.catch(error => {
-    console.error('Failed to connect to MongoDB:', error);
-    process.exit(1);
-});
 
 // Middleware
 app.set('view engine', 'ejs');
@@ -152,11 +143,12 @@ app.put('/editQuote', validateQuoteInput, (request, response) => {
             },
             { returnDocument: 'after' }
         )
-        .then(result => {
-            if (!result.value) {
+        // Since driver 6, this is the updated quote itself, or null if none matched
+        .then(updatedQuote => {
+            if (!updatedQuote) {
                 return response.status(404).json({ error: 'Quote not found' });
             }
-            response.json(result.value);
+            response.json(updatedQuote);
         })
         .catch(error => {
             console.error('Error updating quote:', error);
@@ -169,7 +161,7 @@ app.put('/editQuote', validateQuoteInput, (request, response) => {
 });
 
 app.put('/addUpvote', (request, response) => {
-    const { id, likes } = request.body;
+    const { id, likes } = request.body ?? {};
     
     if (!id || likes === undefined) {
         return response.status(400).json({ error: 'Quote ID and likes count are required' });
@@ -187,11 +179,11 @@ app.put('/addUpvote', (request, response) => {
             },
             { returnDocument: 'after' }
         )
-        .then(result => {
-            if (!result.value) {
+        .then(updatedQuote => {
+            if (!updatedQuote) {
                 return response.status(404).json({ error: 'Quote not found' });
             }
-            response.json(result.value);
+            response.json(updatedQuote);
         })
         .catch(error => {
             console.error('Error updating likes:', error);
@@ -204,7 +196,7 @@ app.put('/addUpvote', (request, response) => {
 });
 
 app.delete('/deleteQuote', (request, response) => {
-    const { id } = request.body;
+    const { id } = request.body ?? {};
     
     if (!id) {
         return response.status(400).json({ error: 'Quote ID is required' });
@@ -229,12 +221,27 @@ app.delete('/deleteQuote', (request, response) => {
     }
 });
 
-// Error handling middleware
+// Error handling middleware. Errors from the body parsers carry their own
+// status (400 bad JSON, 413 too large, 415 compressed); anything else is a 500.
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
+    const status = err.status >= 400 && err.status < 500 ? err.status : 500;
+    res.status(status).json({ error: status === 500 ? 'Something went wrong!' : 'Invalid request' });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Connect to MongoDB, then start the server
+MongoClient.connect(process.env.DB_STRING)
+.then(client => {
+    console.log(`Connected to ${DB_NAME} Database`);
+    db = client.db(DB_NAME);
+    // Express 5 passes a failed start (like a port in use) to this callback
+    app.listen(PORT, (error) => {
+        if (error) throw error;
+        // The Node version shows in Railway's deploy log, to confirm the pin in package.json
+        console.log(`Server is running on port ${PORT} with Node ${process.version}`);
+    });
+})
+.catch(error => {
+    console.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
 });
