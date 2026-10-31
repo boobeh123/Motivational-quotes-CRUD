@@ -201,20 +201,17 @@ The whole server is `server.js`. In order:
   - Run it from a git worktree. It sets `DB_STRING` itself, and refuses a folder with a `.env`.
 - **Never test against the production database.**
 
-## Work in progress
+## History
 
-An approved plan (Oct 30 2026), one PR at a time.
-
-Done:
+The Oct 30 2026 plan (an update, then fixes and features, one PR at a time) is done:
+- PR #1: Node 24.22.1, Express 5, MongoDB driver 7.
 - PR #2: adding, editing, liking and deleting fixes. This file arrived with it.
 - PR #3: page, accessibility and CSP fixes.
 - PR #4: the quote box with a character count, the social card, and two fixes from Bobby's checks (reloads after a refused quote; the faint ×).
-- PR #5: own quotes (above), with the privacy wording, and a fix for tap-to-close on iPhones.
+- PR #5: own quotes, with privacy wording, and a fix for tap-to-close on iPhones.
 - PR #6: one like per browser, with privacy lines.
 - PR #7: sort and search.
-- PR 8: "Inspire me" from ZenQuotes, with a privacy line.
+- PR #8: "Inspire me" from ZenQuotes, with a privacy line.
+- PR 9: a README refresh, and the policy date corrected to 10/30/2026.
 
-Next:
-9. A README refresh.
-
-The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi. Update this section as PRs merge.
+**Open with Bobby:** whether §6 of the privacy policy should also name Railway (hosting) and cdnjs (Cloudflare delivers Font Awesome). The full plan is `~/.claude/plans/hey-claude-sorry-i-swirling-bentley.md` on Bobby's Pi.
